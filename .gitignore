@@ -1,1 +1,9 @@
-/gnus-recent.elc
+# backup, bytecode
+*~
+*.bkp
+*.orig
+*.elc
+
+# misc
+helm-tut.el
+

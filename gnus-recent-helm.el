@@ -159,8 +159,7 @@ function `helm-marked-candidates'.  Argument _recent is not used."
          (l1-gral (length gnus-recent--articles-list)))
     (dolist (article cand)
       (gnus-recent-forget article t))
-    (gnus-message 4
-                  "Removed %d of %d article(s) from gnus-recent"
+    (gnus-message 4 "Removed %d of %d article(s) from gnus-recent done."
                   (- l1-gral (length gnus-recent--articles-list))
                   l1-cand)))
 

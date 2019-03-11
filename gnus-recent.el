@@ -60,17 +60,30 @@
   "Internal variable; true iff we're currently showing a recent article.")
 
 (defvar gnus-recent--temp-message-headers nil
-  "A variable to temporarily place header data from an outgoing message.")
+  "Internal variable; for temporarily placing header data from an outgoing message.")
 
 (defgroup gnus-recent nil
   "Article breadcrumbs for gnus."
   :tag "Gnus Recent"
   :group 'gnus)
 
-(defcustom gnus-recent-file  "~/.gnus-recent-data"
-  "The file to save the gnus-recent-articles list data."
+(defcustom gnus-recent-top-dir "~/.emacs.d/gnus-recent"
+  "The parent directory for gnus-recent files."
+  :group 'gnus-recent
+  :type 'directory)
+
+(defcustom gnus-recent-file  "~/.emacs.d/gnus-recent/articles.el"
+  "A file to save the gnus recent articles list data.
+Set to nil, for no article tracking between gnus sessions.
+Otherwise, best to keep this file under `gnus-recent-top-dir'."
   :group 'gnus-recent
   :type 'file)
+
+(defcustom gnus-recent-breadcrumbs-dir "~/.emacs.d/gnus-recent/crumbs"
+  "A directory for keeping article breadcrumbs in between saves.
+Used only when `gnus-recent-file' is non-nil."
+  :group 'gnus-recent
+  :type 'directory)
 
 (defcustom gnus-recent-format-time-string "%F %a %T"
   "A string for formating the article date.
@@ -168,10 +181,10 @@ arguments are passed by gnus."
   "Track interactive user deletion of articles.
 Remove the article data in `gnus-recent--articles-list'. ACTION
 should be 'delete. ARTICLE is the gnus message header. For use by
-`gnus-summary-article-delet-hook', so all arguments are passed by
-gnus."
+`gnus-summary-article-delete-hook', so all arguments are passed
+by gnus."
   (when (eq action 'delete)
-    (gnus-recent-forget-message-id (mail-header-id article))))
+    (gnus-recent-forget-message-id (mail-header-id article) t)))
 
 (defun gnus-recent--track-expire-article (action article _from-group to-group _select-method)
   "Track when articles expire.
@@ -183,7 +196,7 @@ header passed when the hook is run. For use by
   (when (eq action 'delete)
     (if to-group                        ; article moves to the expiry-target group
         (gnus-recent-update-message-id (mail-header-id article) to-group)
-      (gnus-recent-forget-message-id (mail-header-id article))))) ; article deleted
+      (gnus-recent-forget-message-id (mail-header-id article) t)))) ; article deleted
 
 (defmacro gnus-recent--shift (lst)
   "Put the first element of LST last, then return that element."
@@ -241,31 +254,38 @@ Warn if RECENT can't be deconstructed as expected."
   "Insert an `org-mode' link to RECENT Gnus article."
   (insert (gnus-recent--create-org-link recent)))
 
-(defun gnus-recent-update-message-id (message-id to-group)
+(defun gnus-recent-update-message-id (message-id to-group &optional no-crumb-save)
   "Update the Gnus article with MESSAGE-ID in `gnus-recent--articles-list'.
-The Gnus article has moved to group TO-GROUP."
+The Gnus article has moved to group TO-GROUP.
+Set NO-CRUMB-SAVE non-nil to skip saving a crumb."
   (let ((article (gnus-recent-find-message-id message-id)))
     (when article
-      (setf (alist-get 'group article) to-group))))
+      (setf (alist-get 'group article) to-group)
+      (unless no-crumb-save
+        (gnus-recent--crumb-save article 'upd)))))
 
 (defun gnus-recent-update (recent to-group)
   "Update RECENT Gnus article in `gnus-recent--articles-list'.
 The Gnus article has moved to group TO-GROUP."
   (gnus-recent-update-message-id (alist-get 'message-id recent) to-group))
 
-(defun gnus-recent-forget-message-id (message-id &optional print-msg)
+(defun gnus-recent-forget-message-id (message-id &optional print-msg no-crumb-save)
   "Remove the Gnus article with MESSAGE-ID in `gnus-recent--articles-list'.
-When PRINT-MSG is non-nil, show a message about it."
+When PRINT-MSG is non-nil, show a message about it.
+Set NO-CRUMB-SAVE non-nil to skip saving a crumb file."
   (let ((l1 (length gnus-recent--articles-list))
         (article (car gnus-recent--articles-list)))
     ;; check for a match on the first article on list
     (if (equal message-id (alist-get 'message-id article))
         (pop gnus-recent--articles-list)
       (setq article (gnus-recent-find-message-id message-id))
-      (cl-delete article gnus-recent--articles-list :test 'equal :count 1))
-    (when print-msg
-      (gnus-message 4 "Removed %d of 1 from gnus-recent articles" (- l1 (length gnus-recent--articles-list)))
-      (gnus-message 4 "Removed item: %s from gnus-recent articles" (car article)))))
+      (when article
+        (cl-delete article gnus-recent--articles-list :test 'equal :count 1)))
+    (when (= 1 (- l1 (length gnus-recent--articles-list)))
+      (unless no-crumb-save (gnus-recent--crumb-save article 'del))
+      (when print-msg
+        (gnus-message 4 "Removed 1 of 1 from gnus-recent articles")
+        (gnus-message 4 "Removed item: %s from gnus-recent articles" (car article))))))
 
 (defun gnus-recent-forget (recent &optional print-msg)
   "Remove RECENT Gnus article from `gnus-recent--articles-list'.
@@ -277,6 +297,7 @@ When PRINT-MSG is non-nil, show a message about it."
   (interactive)
   (when (yes-or-no-p "Action can not be undone. Are you sure? ")
     (setq gnus-recent--articles-list nil)
+    (gnus-recent--crumbs-clear-all)
     (gnus-message 4 "Cleared all gnus-recent article entries")))
 
 (defun gnus-recent-bbdb-display-all (recent)
@@ -355,46 +376,122 @@ Returns the first article in `gnus-recent--articles-list' that
 matches the message-id of the RECENT article argument."
   (gnus-recent-find-message-id (alist-get 'message-id recent)))
 
-(defun gnus-recent-add-to-list (recent)
+(defun gnus-recent-add-to-list (recent &optional no-crumb-save)
   "Add the RECENT article data to the articles list.
 Ensures the value for messsage-id is unique among all articles
-stored in `gnus-recent--articles-list'. See
+stored in `gnus-recent--articles-list'. When NO-CRUMB-SAVE is
+non-nil, will not save the article data to a crumb file. See
 `gnus-recent--get-article-data' for the recent article data
 format."
   (when recent
     (unless (gnus-recent-find-message-id (alist-get 'message-id recent))
-      (push recent gnus-recent--articles-list))))
+      (push recent gnus-recent--articles-list)
+      (unless no-crumb-save
+        (gnus-recent--crumb-save recent 'new)))))
 
-;; TODO: can we save the diff, instead of everything ?
+(defun gnus-recent--crumb-filename (type)
+  "Generate a full path filename for an article crumb.
+Crumb files are used to store a single article data. They reside
+in the `gnus-recent-breadcrumbs-dir' directory. TYPE should
+indicate an action type, see `gnus-recent--crumb-save'."
+  (format "%s/cr-%s-%s.el"
+          gnus-recent-breadcrumbs-dir
+          (format-time-string "%Y%m%d%H%M%S-%N")
+          type))
+
+(defun gnus-recent--crumbs-clear-all ()
+  "Clear all crumb files."
+  (dolist (crumb (directory-files gnus-recent-breadcrumbs-dir  t "^cr-" t))
+    (delete-file crumb)))
+
+(defun gnus-recent--crumbs-load ()
+  "Load the article data saved in crumb files to `gnus-recent--articles-list'.
+In case something goes wrong, crumb files are used to restore
+`gnus-recent--articles-list', as not to lose any previous
+actions."
+  (dolist (crumb (directory-files gnus-recent-breadcrumbs-dir  t "^cr-"))
+    (cond
+     ((string-match-p "-new.el$" crumb) (load-crumb-new crumb))
+     ((string-match-p "-upd.el$" crumb) (load-crumb-upd crumb))
+     ((string-match-p "-del.el$" crumb) (load-crumb-del crumb))
+     (t (message "Warning: found bad crumb: %s" (file-name-nondirectory crumb))))
+    (delete-file crumb)))
+
+(defun load-crumb-new (crumb-file)
+  "Load the elisp data in CRUMB-FILE to `gnus-recent--articles-list'.
+CRUMB-FILE is the full file path to a crumb file of type new.
+Pass non-nil for the optional argument to
+`gnus-recent-add-to-list' no-crumb-save, not to save another
+crumb."
+  (gnus-recent-add-to-list (gnus-recent--read-file-contents crumb-file) t))
+
+(defun load-crumb-upd (crumb-file)
+  "Use the elisp data in CRUMB-FILE to update `gnus-recent--articles-list'.
+CRUMB-FILE is the full file path to a crumb file of type upd.
+Pass non-nil for the optional argument to
+`gnus-recent-add-to-list' no-crumb-save, not to save another
+crumb."
+  (let ((article (gnus-recent--read-file-contents crumb-file)))
+    (gnus-recent-update-message-id (alist-get 'message-id article)
+                                   (alist-get 'group article)
+                                   t)))
+
+(defun load-crumb-del (crumb-file)
+  "Use CRUMB-FILE to delete an item in `gnus-recent--articles-list'.
+CRUMB-FILE is the full file path to a crumb file of type del.
+Pass non-nil for the optional argument to
+`gnus-recent-add-to-list' no-crumb-save, not to save another
+crumb."
+  (gnus-recent-forget-message-id
+   (alist-get 'message-id (gnus-recent--read-file-contents crumb-file))
+   t t))
+
+(defun gnus-recent--crumb-save (recent type)
+  "Backup single article data until the next save.
+TYPE should be one of 'new, 'upd or 'del.
+RECENT is an alist of the article data."
+  (with-temp-file (gnus-recent--crumb-filename type)
+    (prin1 recent (current-buffer))))
+
+(defun gnus-recent--read-file-contents (file)
+  "Read the contents of a file.
+FILE is the full file path."
+  (if (and file (file-readable-p file))
+      (with-temp-buffer
+        (insert-file-contents file)
+        (read (current-buffer)))
+    (error "Can not read file '%s'" file)))
+
 (defun gnus-recent-save ()
   "Save the gnus recent items to file for persistance."
   (interactive)
-  (if (file-writable-p gnus-recent-file)
-      (progn
-        (gnus-message 5 "Saving gnus-recent data to %s." gnus-recent-file)
-        (with-temp-file gnus-recent-file
-          (print gnus-recent--articles-list (current-buffer)))
-        (gnus-message 5 "Saving gnus-recent data (%d items) done."
-                      (length gnus-recent--articles-list)))
-    (error "Error: can not save gnus-recent data to %s" gnus-recent-file)))
+  (when gnus-recent-file
+    (if (file-writable-p gnus-recent-file)
+        (progn
+          (gnus-message 5 "Saving gnus-recent data to %s." gnus-recent-file)
+          (with-temp-file gnus-recent-file
+            (let ((print-level nil)
+                  (print-length nil))
+              (prin1 gnus-recent--articles-list (current-buffer))))
+          (gnus-recent--crumbs-clear-all)
+          (gnus-message 5 "Saving gnus-recent data (%d items) done."
+                        (length gnus-recent--articles-list)))
+      (error "Error: can not save gnus-recent data to %s" gnus-recent-file))))
 
 (defun gnus-recent-read ()
   "Read gnus-recent data from a previous session."
   (interactive)
-  (gnus-message 5 "Reading gnus-recent data from %s." gnus-recent-file)
-  (setq gnus-recent--articles-list
-        (if (file-readable-p gnus-recent-file)
-            (read
-             (with-temp-buffer
-               (insert-file-contents gnus-recent-file)
-               (buffer-string)))
-          nil))
-  (gnus-message 5 "Read %d item(s) from %s... done."
-                (length gnus-recent--articles-list) gnus-recent-file))
+  (when gnus-recent-file
+    (gnus-message 5 "Reading gnus-recent data from %s." gnus-recent-file)
+    (setq gnus-recent--articles-list
+          (gnus-recent--read-file-contents gnus-recent-file))
+    (gnus-recent--crumbs-load)
+    (gnus-message 5 "Read %d item(s) from %s... done."
+                  (length gnus-recent--articles-list) gnus-recent-file)))
 
 (defun gnus-recent-count-saved ()
   "Count the number of articles saved in `gnus-recent-file'."
-  (if (file-readable-p gnus-recent-file)
+  (if (and gnus-recent-file (file-readable-p gnus-recent-file))
       (length (read
                (with-temp-buffer
                  (insert-file-contents gnus-recent-file)
@@ -402,7 +499,7 @@ format."
     nil))
 
 ;;
-;; Track new messages
+;; Track outgoing messages
 ;;
 (defun gnus-recent--track-message ()
   "Add an newly sent message to the list of tracked articles.
@@ -434,7 +531,7 @@ data should be available on `gnus-recent--temp-message-headers'."
            (cons 'in-reply-to (alist-get 'in-reply-to hdrs))))))
 
 (defun gnus-recent--get-message-data ()
-  "Get the headers from a new message.
+  "Get the headers from a new outgoing message.
 Returns a header alist, see function
 `mail-header-extract-no-properties'. Needs to run with the
 `message-header-hook' which applies narrowing to the message
@@ -453,9 +550,17 @@ an entry to `gnus-recent--articles-list'."
 (defun gnus-recent-start ()
   "Start Gnus Recent."
   (interactive)
+  (gnus-recent-check-files)
   (gnus-message 5 "Starting gnus-recent")
   (gnus-recent-add-hooks)
   (gnus-recent-read))
+
+(defun gnus-recent-check-files ()
+  "Check for the gnus-recent directories.
+If the directories don't exist, create them."
+  (dolist (d (list gnus-recent-breadcrumbs-dir gnus-recent-top-dir))
+    (unless (file-exists-p d)
+      (make-directory d t))))
 
 (defun gnus-recent-add-hooks ()
   "Install the gnus-recent hooks."

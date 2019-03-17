@@ -245,6 +245,17 @@ Warn if RECENT can't be deconstructed as expected."
            (replace-regexp-in-string "[][\t]" ""
                                      (substring (car recent) 0 48)))))
 
+(defun gnus-recent-split-org-link-gnus (link)
+  "Split a gnus article org link into its parts.
+Returns a cons cell as (gnus-group . message-id)."
+  (let ((s (subseq (split-string (substring-no-properties link 7) "[]#]") 0 2)))
+    (cons (car s) (concat "<" (nth 1 s) ">"))))
+
+(defun gnus-recent-string-unbracket (txt)
+  "Trim brackets from string."
+  (replace-regexp-in-string "^<\\|>$" "" txt))
+
+
 (defun gnus-recent-kill-new-org-link (recent)
   "Add to the `kill-ring' an `org-mode' link to RECENT Gnus article."
   (kill-new (gnus-recent--create-org-link recent))

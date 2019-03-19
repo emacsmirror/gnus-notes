@@ -32,6 +32,7 @@
 
 ;;; Code:
 
+(require 's)
 (require 'gnus-recent)
 (require 'org-gnus)
 
@@ -61,17 +62,13 @@ reply to."
   "Show available gnus messages on the current org headline.
 The messages will be shown in a Gnus ephemeral group."
   (interactive)
-  (when (eq major-mode 'org-agenda-mode)
-    (org-agenda-goto))
-  (let* ((entry-text (gnus-string-remove-all-properties (org-get-entry)))
-         (entry-links (gnus-recent-org-find-org-links-gnus entry-text)))
+  (let ((org-links-gnus (gnus-recent-org-heading-get-org-links-gnus)))
     (message-box "Number of links: %d\nTop link: %s\nSender: %s\n"
                  (length entry-links)
                  (car-safe entry-links)
                  (if (> (length entry-links) 0)
                      "Somebody"         ; (alist-get 'sender (car entry-links))
-                   "Nobody")))
-  )
+                   "Nobody"))))
 
 ;; (org-get-entry)
 ;; (setq x (gnus-string-remove-all-properties x))
@@ -91,11 +88,16 @@ The messages will be shown in a Gnus ephemeral group."
 
 (define-key org-mode-map (kbd "C-c t") 'hydra-gnus-recent-org-handle-mail/body)
 
+(defun gnus-recent-org-heading-get-org-links-gnus ()
+  "Get the org-links under the current heading."
+  (interactive)
+  (when (eq major-mode 'org-agenda-mode)
+    (org-agenda-goto))
+  (gnus-recent-org-search-string-org-links-gnus
+   (gnus-string-remove-all-properties (org-get-entry))))
 
-(defun gnus-recent-org-find-org-links-gnus (txt)
+
+(defun gnus-recent-org-search-string-org-links-gnus (txt)
   "Search text TXT for org-links, having protocol \"gnus:\".
 Returns a list of org-links, that point to gnus articles."
-  (let (res)
-    (dolist (l (s-match-strings-all "\\[\\[gnus:.+\\]\\]" txt))
-      (push (car l) res))
-    (nreverse res)))
+  (mapcar 'car (s-match-strings-all "\\[\\[gnus:.+\\]\\]" txt)))

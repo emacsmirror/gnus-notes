@@ -64,10 +64,10 @@ The messages will be shown in a Gnus ephemeral group."
   (interactive)
   (let ((org-links-gnus (gnus-recent-org-heading-get-org-links-gnus)))
     (message-box "Number of links: %d\nTop link: %s\nSender: %s\n"
-                 (length entry-links)
-                 (car-safe entry-links)
-                 (if (> (length entry-links) 0)
-                     "Somebody"         ; (alist-get 'sender (car entry-links))
+                 (length org-links-gnus)
+                 (car-safe org-links-gnus)
+                 (if (> (length org-links-gnus) 0)
+                     "Somebody"         ; (alist-get 'sender org-links-gnus)
                    "Nobody"))))
 
 ;; (org-get-entry)

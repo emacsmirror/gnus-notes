@@ -70,6 +70,13 @@ The messages will be shown in a Gnus ephemeral group."
                      "Somebody"         ; (alist-get 'sender org-links-gnus)
                    "Nobody"))))
 
+(defun gnus-recent-org-handle-mail-crumbs ()
+  "Show available gnus messages from the current org headline in helm."
+  (interactive)
+  (let ((org-links-gnus (gnus-recent-org-heading-get-org-links-gnus))))
+  )
+
+
 ;; (org-get-entry)
 ;; (setq x (gnus-string-remove-all-properties x))
 ;; (s-match-strings-all "\\[\\[gnus:.+\\]\\]" x)
@@ -81,9 +88,10 @@ The messages will be shown in a Gnus ephemeral group."
 
 
 (defhydra hydra-gnus-recent-org-handle-mail (:color blue)
-  "Create an email from the current org headline."
+  "Reply to email from current task"
   ("t" gnus-recent-org-handle-mail-top "Reply to top")
   ("v" gnus-recent-org-handle-mail-view "View emails")
+  ("h" gnus-recent-org-handle-mail-crumbs "View in helm")
   ("q" nil "quit"))
 
 (define-key org-mode-map (kbd "C-c t") 'hydra-gnus-recent-org-handle-mail/body)
@@ -93,11 +101,12 @@ The messages will be shown in a Gnus ephemeral group."
   (interactive)
   (when (eq major-mode 'org-agenda-mode)
     (org-agenda-goto))
-  (gnus-recent-org-search-string-org-links-gnus
-   (gnus-string-remove-all-properties (org-get-entry))))
+  (gnus-recent-org-search-string-org-links-gnus (org-get-entry)))
 
 
 (defun gnus-recent-org-search-string-org-links-gnus (txt)
   "Search text TXT for org-links, having protocol \"gnus:\".
 Returns a list of org-links, that point to gnus articles."
-  (mapcar 'car (s-match-strings-all "\\[\\[gnus:.+\\]\\]" txt)))
+  (mapcar 'car
+          (s-match-strings-all "\\[\\[gnus:.+\\]\\]"
+                               (gnus-string-remove-all-properties txt))))

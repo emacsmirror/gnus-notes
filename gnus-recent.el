@@ -248,8 +248,9 @@ Warn if RECENT can't be deconstructed as expected."
 (defun gnus-recent-split-org-link-gnus (link)
   "Split a gnus article org link into its parts.
 Returns a cons cell as (gnus-group . message-id)."
-  (let ((s (subseq (split-string (substring-no-properties link 7) "[]#]") 0 2)))
-    (cons (car s) (concat "<" (nth 1 s) ">"))))
+  (when link
+    (let ((s (subseq (split-string (substring-no-properties link 7) "[]#]") 0 2)))
+      (cons (car s) (concat "<" (nth 1 s) ">")))))
 
 (defun gnus-recent-string-unbracket (txt)
   "Trim brackets from string."
@@ -357,12 +358,13 @@ group value. It returns a list of message-ids that are found more
 than once."
  (cl-find elem1 gnus-recent--articles-list))
 
-(defun gnus-recent-filter-prop (prop value)
+;; FIXME: remove the optional test, use equal.
+(defun gnus-recent-filter-prop (prop value &optional test)
   "Return a list  of all articles with PROP equal to VALUE.
 Search the `gnus-recent--articles-list' for all elements with
 property PROP equal to value."
   (seq-filter #'(lambda (item)
-                  (equal value (alist-get prop item)))
+                  (funcall (or test #'equal) value (alist-get prop item)))
               gnus-recent--articles-list))
 
 (defun gnus-recent-find-prop (prop value)
@@ -380,6 +382,13 @@ Returns the first article in `gnus-recent--articles-list' that
 matches the MESSAGE-ID provided. A convinience wrapper for
 `gnus-recent-find-prop'."
   (gnus-recent-find-prop 'message-id  message-id))
+
+(defun gnus-recent-find-message-ids-list (msgids-list)
+  "Search gnus-recent articles for MSGIDS-LIST.
+Returns the list of articles in `gnus-recent--articles-list' that match the list of
+message-id provided. MSGIDS-LIST is a list of articles message-ids."
+
+  )
 
 (defun gnus-recent-find-article (recent)
   "Search the gnus-recent articles list for RECENT article.

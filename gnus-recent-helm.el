@@ -146,9 +146,9 @@ argument to `mapcar.'"
                     (concat "\n    Cc: " it)))
         item))
 
-(defun gnus-recent-helm-candidates ()
+(defun gnus-recent-helm-candidates (articles-list)
   "Initialize the `helm' candidates data."
-  (mapcar #'gnus-recent-helm-candidates-display-default gnus-recent--articles-list))
+  (mapcar #'gnus-recent-helm-candidates-display-default articles-list))
 
 (defun gnus-recent-helm-forget (_recent)
   "Remove Gnus articles from `gnus-recent--articles-list' using `helm'.
@@ -196,7 +196,7 @@ Also a number of possible actions are defined."
   (interactive)
   (helm :sources (helm-build-sync-source "Gnus recent articles"
                    :keymap gnus-recent-helm-map
-                   :candidates 'gnus-recent-helm-candidates
+                   :candidates (lambda () (gnus-recent-helm-candidates gnus-recent--articles-list))
                    :filtered-candidate-transformer  'gnus-recent-helm-candidate-transformer
                    :persistent-action 'gnus-recent-helm-hydra-pa
                    :persistent-help "view hydra"

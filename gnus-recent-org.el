@@ -73,9 +73,32 @@ The messages will be shown in a Gnus ephemeral group."
 (defun gnus-recent-org-handle-mail-crumbs ()
   "Show available gnus messages from the current org headline in helm."
   (interactive)
-  (let ((org-links-gnus (gnus-recent-org-heading-get-org-links-gnus))))
-  )
-
+  (let* ((entry-text (gnus-string-remove-all-properties (org-get-entry)))
+         (org-links-gnus (gnus-recent-org-search-string-org-links-gnus entry-text))
+         (orgids (gnus-recent-org-get-orgids entry-text))
+         (articles-msgid (mapcar 'cdr
+                                 (mapcar 'gnus-recent-split-org-link-gnus
+                                         org-links-gnus)))
+         (articles-msgid-by-org-ids (gnus-recent-org-get-heading-message-ids
+                                     orgids)))
+    (helm
+     :sources (helm-build-sync-source "Heading articles"
+                :keymap gnus-recent-helm-map
+                :candidates (lambda () (gnus-recent-helm-candidates articles-msgid-by-org-ids))
+                :filtered-candidate-transformer  'gnus-recent-helm-candidate-transformer
+                :persistent-action 'gnus-recent-org-helm-hydra-pa
+                :persistent-help "view hydra"
+                :action '(("Open article"               . gnus-recent--open-article)
+                          ("Wide reply and yank"        . gnus-recent--reply-article)
+                          ("Show thread"                . gnus-recent--show-thread)
+                          ("Copy org link to kill ring" . gnus-recent-kill-new-org-link)
+                          ;; ("Insert org link"            . gnus-recent-insert-org-link)
+                          ;; ("Remove marked article(s)"   . gnus-recent-helm-forget)
+                          ("Display BBDB entries"       . gnus-recent-bbdb-display-all)
+                          ;; ("Clear all"                  . gnus-recent-forget-all)
+                          ))
+     :buffer "*helm org heading articles*"
+     :truncate-lines t)))
 
 ;; (org-get-entry)
 ;; (setq x (gnus-string-remove-all-properties x))
@@ -96,6 +119,15 @@ The messages will be shown in a Gnus ephemeral group."
 
 (define-key org-mode-map (kbd "C-c t") 'hydra-gnus-recent-org-handle-mail/body)
 
+(defun gnus-recent-org-get-entry (&optional keep-properties)
+  "Get the entry text"
+  (interactive)
+  (when (eq major-mode 'org-agenda-mode)
+    (org-agenda-goto))
+  (if keep-properties
+      (org-get-entry)
+    (gnus-string-remove-all-properties (org-get-entry))))
+
 (defun gnus-recent-org-heading-get-org-links-gnus ()
   "Get the org-links under the current heading."
   (interactive)
@@ -110,3 +142,36 @@ Returns a list of org-links, that point to gnus articles."
   (mapcar 'car
           (s-match-strings-all "\\[\\[gnus:.+\\]\\]"
                                (gnus-string-remove-all-properties txt))))
+
+(defun gnus-recent-org-get-orgids (txt)
+  "Find the org-ids in text TXT."
+  (mapcar (lambda (x) (cadr (split-string x ":" t " +")))
+          (mapcar 'car
+                  (s-match-strings-all "^ +:ID:.+" txt))))
+
+(defun gnus-recent-org-get-heading-message-ids (id-list)
+  "Get the article message-id that have any of the given org-ids.
+ID-LIST is a list of org-ids to search in `gnus-recent--articles-list'. Returns a
+combined list of all article message-ids found."
+  ;; FIXME: use equal for the test
+  (mapcan '(lambda (id) (gnus-recent-filter-prop 'gnorb-id id #'string=))
+          id-list))
+
+(defhydra hydra-gnus-org-helm (:columns 4 :exit nil)
+  "Persistent actions"
+  ("c" (gnus-recent-kill-new-org-link gnus-recent-helm-current-data-pa) "Copy Org link")
+  ("b" (gnus-recent-bbdb-display-all gnus-recent-helm-current-data-pa) "BBDB entries")
+  ;; ("K" (gnus-recent-helm-forget-pa gnus-recent-helm-current-data-pa) "Forget current")
+  ("{" helm-enlarge-window "enlarge")
+  ("}" helm-narrow-window "narrow")
+  (">" helm-toggle-truncate-line "wrap lines")
+  ("_" helm-toggle-full-frame "full frame")
+  ("Y" helm-yank-selection "yank entry")
+  ("U" helm-refresh "update data")
+  ("q" nil "quit" :exit t))
+
+(defun gnus-recent-org-helm-hydra-pa (recent)
+  "Persistent action activates a Hydra.
+RECENT is the current article in the helm buffer."
+  (setq gnus-recent-helm-current-data-pa recent)
+  (hydra-gnus-org-helm/body))

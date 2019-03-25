@@ -44,7 +44,7 @@
 (defvar gnus-recent-display-extra nil
   "Display extra article info.")
 
-(defvar gnus-recent-display-levels '(To Cc nil)
+(defvar gnus-recent-display-levels '(To Cc Msgid Orgid nil)
   "Display levels for extra article info.")
 
 (defvar gnus-recent-helm-current-data-pa nil
@@ -108,6 +108,10 @@ turned on and off, as needed."
          (mapcar #'gnus-recent-helm-candidates-display-to candidates))
     ('Cc (helm-attrset 'multiline nil source)
          (mapcar #'gnus-recent-helm-candidates-display-cc candidates))
+    ('Msgid (helm-attrset 'multiline nil source)
+            (mapcar #'gnus-recent-helm-candidates-display-msgid candidates))
+    ('Orgid (helm-attrset 'multiline nil source)
+            (mapcar #'gnus-recent-helm-candidates-display-orgid candidates))
     (t (assq-delete-all 'multiline source)
        candidates)))
 
@@ -145,6 +149,36 @@ argument to `mapcar.'"
                 (helm-aif (alist-get 'Cc  (alist-get 'recipients item))
                     (concat "\n    Cc: " it)))
         item))
+
+(defun gnus-recent-helm-candidates-display-msgid (item)
+  "Display the To, Cc and message-id fields for each article on separate lines.
+ITEM is the article data in `gnus-recent--articles-list'. Used as the function
+argument to `mapcar.'"
+  (cons (concat (car item)
+                "\n    To: "
+                (alist-get 'To  (alist-get 'recipients item))
+                (helm-aif (alist-get 'Cc  (alist-get 'recipients item))
+                    (concat "\n    Cc: " it))
+                "\n    MsgID: "
+                (alist-get 'message-id item))
+        item))
+
+(defun gnus-recent-helm-candidates-display-orgid (item)
+  "Display the To, Cc, message-id and org-id fields for each article on separate lines.
+ITEM is the article data in `gnus-recent--articles-list'. Used as the function
+argument to `mapcar.'"
+  (cons (concat (car item)
+                "\n    To: "
+                (alist-get 'To  (alist-get 'recipients item))
+                (helm-aif (alist-get 'Cc  (alist-get 'recipients item))
+                    (concat "\n    Cc: " it))
+                "\n    MsgID: "
+                (alist-get 'message-id item)
+                (helm-aif (alist-get 'org-id item)
+                    (concat "\n    orgid: "
+                            (symbol-name it)))) ; FIXME: org-id should be text, not symbols
+        item))
+
 
 (defun gnus-recent-helm-candidates (articles-list)
   "Initialize the `helm' candidates data."
@@ -201,6 +235,8 @@ Also a number of possible actions are defined."
                    :persistent-action 'gnus-recent-helm-hydra-pa
                    :persistent-help "view hydra"
                    :action '(("Open article"               . gnus-recent--open-article)
+                             ("Reply article"              . gnus-recent--reply-article-wide-yank)
+                             ("Show thread"                . gnus-recent--show-article-thread)
                              ("Copy org link to kill ring" . gnus-recent-kill-new-org-link)
                              ("Insert org link"            . gnus-recent-insert-org-link)
                              ("Remove marked article(s)"   . gnus-recent-helm-forget)

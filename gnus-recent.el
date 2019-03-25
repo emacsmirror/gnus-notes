@@ -235,6 +235,32 @@ Warn if RECENT can't be deconstructed as expected."
   "Open RECENT gnus article using `org-gnus'."
   (org-gnus-follow-link (alist-get 'group recent) (alist-get 'message-id recent)))
 
+(defun gnus-recent--reply-article-wide-yank (recent)
+  "Make a wide reply and yank to the current RECENT article."
+  ;; TODO: handle the case the article/email doesn't existany more
+  (gnus-recent--open-article recent)
+  (call-interactively 'gnus-summary-wide-reply-with-original)
+  (when (featurep 'gnus-recent-org)
+    (gnus-recent-org-message-add-header 'X-Org-Id gnus-recent--current-org-id)))
+
+;; TODO: move to the org file
+(defun gnus-recent-org-message-add-header (header value)
+  "Add a HEADER when composing a new message.
+VALUE is the value for the header."
+  (when (derived-mode-p 'message-mode 'mail-mode)
+    (save-excursion
+      (save-restriction
+        (message-narrow-to-headers-or-head)
+        (open-line 1)
+        (message-insert-header header value)))))
+
+(defun gnus-recent--show-article-thread (recent)
+  "Show the RECENT gnus article thread in a summary buffer."
+  (gnus-recent--open-article recent)
+  (gnus-warp-to-article)
+  (call-interactively 'gnus-summary-refer-thread)
+  (goto-char (point-min)))
+
 (defun gnus-recent--create-org-link (recent)
   "Return an `org-mode' link to RECENT Gnus article."
   (format "[[gnus:%s#%s][Email from %s]]"
@@ -383,12 +409,11 @@ matches the MESSAGE-ID provided. A convinience wrapper for
 `gnus-recent-find-prop'."
   (gnus-recent-find-prop 'message-id  message-id))
 
+;; FIXME: what is this doing here ?
 (defun gnus-recent-find-message-ids-list (msgids-list)
   "Search gnus-recent articles for MSGIDS-LIST.
 Returns the list of articles in `gnus-recent--articles-list' that match the list of
-message-id provided. MSGIDS-LIST is a list of articles message-ids."
-
-  )
+message-id provided. MSGIDS-LIST is a list of articles message-ids.")
 
 (defun gnus-recent-find-article (recent)
   "Search the gnus-recent articles list for RECENT article.

@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;;; Keep track of your seen messages, using a helm interface. Guns-recent provides
-;;; an interface with minimun configuration. It want to "just work".
+;;; an interface with minimun configuration. It should "just work".
 ;;; This file provides integration with your Org-mode TODO headings. It is inspired
 ;;; by Gnorb.
 
@@ -35,6 +35,9 @@
 (require 's)
 (require 'gnus-recent)
 (require 'org-gnus)
+
+(defvar gnus-recent--current-org-id nil
+  "Internal variable; for temporarily placing the current heading org-id.")
 
 ;; (org-defkey org-mode-map (kbd "C-c t") #'hydra-gnus-recent-org-handle-mail-top)
 ;; (org-defkey org-mode-map (kbd "C-c v") #'gnus-recent-org-view)
@@ -50,7 +53,7 @@ reply to."
   (when (eq major-mode 'org-agenda-mode)
     (org-agenda-goto))
   (let* ((entry-text (gnus-string-remove-all-properties (org-get-entry)))
-         (entry-links (gnus-recent-org-find-org-links-gnus entry-text)))
+         (org-links-gnus (gnus-recent-org-search-string-org-links-gnus entry-text)))
     (message-box "Number of links: %d\nTop link: %s\nSender: %s\n"
                  (length entry-links)
                  (car-safe entry-links)
@@ -81,6 +84,7 @@ The messages will be shown in a Gnus ephemeral group."
                                          org-links-gnus)))
          (articles-msgid-by-org-ids (gnus-recent-org-get-heading-message-ids
                                      orgids)))
+    (setq gnus-recent--current-org-id (car orgids))
     (helm
      :sources (helm-build-sync-source "Heading articles"
                 :keymap gnus-recent-helm-map
@@ -89,14 +93,10 @@ The messages will be shown in a Gnus ephemeral group."
                 :persistent-action 'gnus-recent-org-helm-hydra-pa
                 :persistent-help "view hydra"
                 :action '(("Open article"               . gnus-recent--open-article)
-                          ("Wide reply and yank"        . gnus-recent--reply-article)
-                          ("Show thread"                . gnus-recent--show-thread)
+                          ("Wide reply and yank"        . gnus-recent--reply-article-wide-yank)
+                          ("Show thread"                . gnus-recent--show-article-thread)
                           ("Copy org link to kill ring" . gnus-recent-kill-new-org-link)
-                          ;; ("Insert org link"            . gnus-recent-insert-org-link)
-                          ;; ("Remove marked article(s)"   . gnus-recent-helm-forget)
-                          ("Display BBDB entries"       . gnus-recent-bbdb-display-all)
-                          ;; ("Clear all"                  . gnus-recent-forget-all)
-                          ))
+                          ("Display BBDB entries"       . gnus-recent-bbdb-display-all)))
      :buffer "*helm org heading articles*"
      :truncate-lines t)))
 
@@ -105,7 +105,6 @@ The messages will be shown in a Gnus ephemeral group."
 ;; (s-match-strings-all "\\[\\[gnus:.+\\]\\]" x)
 ;; s-match-strings-all "\\[\\[gnus:.+\\]\\]"
 "\\[\\[\\(\\(gnus\\)\\|\\(bbdb\\)\\):.+\\]\\]"
-
 
 ;; <HE1PR0702MB374007926A69A5BA9F469833B7700@HE1PR0702MB3740.eurprd07.prod.outlook.com> OR <1859946832.1551532226619.JavaMail.root@7e5afac02a08> OR <87wolg9jyd.fsf@aia00054aia.gr> OR <871s3ob518.fsf@aia00054aia.gr> OR <43fc0c0fce9292d8bed09ca27.b1ed948b21.20190302133324.73f362d72f.17307e8e@mail197.sea51.mcsv.net>
 
@@ -154,14 +153,13 @@ Returns a list of org-links, that point to gnus articles."
 ID-LIST is a list of org-ids to search in `gnus-recent--articles-list'. Returns a
 combined list of all article message-ids found."
   ;; FIXME: use equal for the test
-  (mapcan '(lambda (id) (gnus-recent-filter-prop 'gnorb-id id #'string=))
+  (mapcan '(lambda (id) (gnus-recent-filter-prop 'org-id id #'string=))
           id-list))
 
 (defhydra hydra-gnus-org-helm (:columns 4 :exit nil)
   "Persistent actions"
   ("c" (gnus-recent-kill-new-org-link gnus-recent-helm-current-data-pa) "Copy Org link")
   ("b" (gnus-recent-bbdb-display-all gnus-recent-helm-current-data-pa) "BBDB entries")
-  ;; ("K" (gnus-recent-helm-forget-pa gnus-recent-helm-current-data-pa) "Forget current")
   ("{" helm-enlarge-window "enlarge")
   ("}" helm-narrow-window "narrow")
   (">" helm-toggle-truncate-line "wrap lines")
@@ -175,3 +173,8 @@ combined list of all article message-ids found."
 RECENT is the current article in the helm buffer."
   (setq gnus-recent-helm-current-data-pa recent)
   (hydra-gnus-org-helm/body))
+
+
+
+(provide 'gnus-recent-org)
+;;; gnus-recent-org.el ends here

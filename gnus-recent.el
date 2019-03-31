@@ -240,19 +240,8 @@ Warn if RECENT can't be deconstructed as expected."
   ;; TODO: handle the case the article/email doesn't existany more
   (gnus-recent--open-article recent)
   (call-interactively 'gnus-summary-wide-reply-with-original)
-  (when (featurep 'gnus-recent-org)
-    (gnus-recent-org-message-add-header 'X-Org-Id gnus-recent--current-org-id)))
-
-;; TODO: move to the org file
-(defun gnus-recent-org-message-add-header (header value)
-  "Add a HEADER when composing a new message.
-VALUE is the value for the header."
-  (when (derived-mode-p 'message-mode 'mail-mode)
-    (save-excursion
-      (save-restriction
-        (message-narrow-to-headers-or-head)
-        (open-line 1)
-        (message-insert-header header value)))))
+  (when (fboundp 'gnus-recent-org-message-add-header-orgid)
+    (gnus-recent-org-message-add-header-orgid)))
 
 (defun gnus-recent--show-article-thread (recent)
   "Show the RECENT gnus article thread in a summary buffer."

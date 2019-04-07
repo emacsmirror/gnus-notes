@@ -112,7 +112,7 @@ turned on and off, as needed."
             (mapcar #'gnus-recent-helm-candidates-display-msgid candidates))
     ('Orgid (helm-attrset 'multiline nil source)
             (mapcar #'gnus-recent-helm-candidates-display-orgid candidates))
-    (t (assq-delete-all 'multiline source)
+    (_ (assq-delete-all 'multiline source)
        candidates)))
 
 (defun gnus-recent-helm-candidates-display-default (item)

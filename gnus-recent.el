@@ -373,9 +373,8 @@ group value. It returns a list of message-ids that are found more
 than once."
  (cl-find elem1 gnus-recent--articles-list))
 
-;; FIXME: remove the optional test, use equal.
 (defun gnus-recent-filter-prop (prop value &optional test)
-  "Return a list  of all articles with PROP equal to VALUE.
+  "Return a list of all articles with PROP equal to VALUE.
 Search the `gnus-recent--articles-list' for all elements with
 property PROP equal to value."
   (seq-filter #'(lambda (item)
@@ -398,11 +397,11 @@ matches the MESSAGE-ID provided. A convinience wrapper for
 `gnus-recent-find-prop'."
   (gnus-recent-find-prop 'message-id  message-id))
 
-;; FIXME: what is this doing here ?
 (defun gnus-recent-find-message-ids-list (msgids-list)
   "Search gnus-recent articles for MSGIDS-LIST.
 Returns the list of articles in `gnus-recent--articles-list' that match the list of
-message-id provided. MSGIDS-LIST is a list of articles message-ids.")
+message-id provided. MSGIDS-LIST is a list of article message-ids."
+  (mapcar 'gnus-recent-find-message-id msgids-list))
 
 (defun gnus-recent-find-article (recent)
   "Search the gnus-recent articles list for RECENT article.

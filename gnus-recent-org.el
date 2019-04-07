@@ -36,7 +36,7 @@
 (require 'gnus-recent)
 (require 'org-gnus)
 
-(defvar gnus-recent--current-org-id nil
+(defvar gnus-recent-org--current-org-id nil
   "Internal variable; for temporarily placing the current heading org-id.")
 
 (defvar gnus-recent-org--current-heading-alist nil
@@ -77,7 +77,8 @@ reply to."
   "Show available gnus messages on the current org headline.
 The messages will be shown in a Gnus ephemeral group."
   (interactive)
-  (let ((org-links-gnus (gnus-recent-org-heading-get-org-links-gnus)))
+  (let* ((entry-text (gnus-string-remove-all-properties (org-get-entry)))
+         (org-links-gnus (gnus-recent-org-search-string-org-links-gnus entry-text)))
     (message-box "Number of links: %d\nTop link: %s\nSender: %s\n"
                  (length org-links-gnus)
                  (car-safe org-links-gnus)
@@ -87,42 +88,53 @@ The messages will be shown in a Gnus ephemeral group."
 
 (defun gnus-recent-org-get-heading-alist ()
   "Get the text of a org heading and extract the info needed."
-  (let* ((hd-txt (gnus-recent-org-get-entry))
-         (org-links-gnus (gnus-recent-org-search-string-org-links-gnus hd-txt))
-         (orgids (gnus-recent-org-get-orgids hd-txt))
-         (articles-msgid (mapcar 'cdr
-                                 (mapcar 'gnus-recent-split-org-link-gnus
-                                         org-links-gnus)))
-         (articles-msgid-by-org-ids (gnus-recent-org-get-heading-message-ids
-                                     orgids)))
-  (list (cons 'entry-text hd-txt)
-        (cons 'org-links-gnus org-links-gnus)
-        (cons 'orgids orgids)
-        (cons 'orgid-top (car orgids))
-        (cons 'articles-msgid articles-msgid)
-        (cons 'articles-msgid-by-org-ids articles-msgid-by-org-ids))))
+  (interactive)
+  (save-excursion
+    (when (eq major-mode 'org-agenda-mode)
+      (org-agenda-goto))
+    (org-back-to-heading t)
+    (let* ((org-hd-marker (point-marker))
+           (uid (org-id-get-create))
+           (hd-txt (save-excursion
+                     (buffer-substring-no-properties (point-at-bol 2)
+                                                     (org-end-of-subtree t))))
+           (org-links-gnus (gnus-recent-org-search-string-org-links-gnus hd-txt))
+           (articles-msgid (mapcar 'cdr
+                                   (mapcar 'gnus-recent-split-org-link-gnus
+                                           org-links-gnus)))
+           (articles (gnus-recent-org-filter-message-ids-list articles-msgid)))
+      (list
+       (cons 'uid uid)
+       (cons 'org-hd-marker org-hd-marker)
+       (cons 'entry-text hd-txt)
+       (cons 'org-links-gnus org-links-gnus)
+       (cons 'orgids (gnus-recent-org-get-orgids hd-txt))
+       (cons 'articles-msgid articles-msgid)
+       (cons 'articles-crumbs articles)))))
 
 (defun gnus-recent-org-set-heading-alist ()
   "Save the heading info needed to `gnus-recent-org--current-heading-alist'."
   (interactive)
-  (setq gnus-recent-org--current-heading-alist
-        (gnus-recent-org-get-heading-alist)))
+  (setq gnus-recent-org--current-heading-alist (gnus-recent-org-get-heading-alist)))
 
 (defun gnus-recent-org-clear-heading-alist ()
   "Clear all data from variable `gnus-recent-org--current-heading-alist'."
   (interactive)
+  ;; (message-box "Clear current-heading-alist Suspended!!")
   (setq gnus-recent-org--current-heading-alist nil))
 
-// FIXME: Exploratory code, need major overhaul.
+;; FIXME: Exploratory code, need major overhaul.
 (defun gnus-recent-org-message-sent-actions ()
   "Tidy up after an outgoing message is sent."
-  (org-with-point-at my-point-marker
+  (when gnus-recent-org--current-heading-alist)
+  (org-with-point-at (alist-get 'org-hd-marker)
     (org-back-to-heading)
     (message-box "org-ID: %s\n" (org-id-get-create))
     (org-add-log-setup 'note nil nil nil "[[gnus:INBOX#mylifeasadog@home.gr][This is a message email]]"))
   (gnus-recent-org-clear-heading-alist))
 
 (add-hook 'message-sent-hook 'gnus-recent-org-message-sent-actions t)
+;; (remove-hook 'message-sent-hook 'gnus-recent-org-message-sent-actions)
 
 (defun gnus-recent-org-handle-mail-crumbs ()
   "Show available gnus messages from the current org headline in helm."
@@ -132,7 +144,7 @@ The messages will be shown in a Gnus ephemeral group."
               :keymap gnus-recent-helm-map
               :candidates (lambda ()
                             (gnus-recent-helm-candidates
-                             (alist-get 'articles-msgid-by-org-ids
+                             (alist-get 'articles-crumbs
                                         gnus-recent-org--current-heading-alist)))
               :filtered-candidate-transformer  'gnus-recent-helm-candidate-transformer
               :persistent-action 'gnus-recent-org-helm-hydra-pa
@@ -159,16 +171,14 @@ The messages will be shown in a Gnus ephemeral group."
   (gnus-recent-org-set-heading-alist)
   (hydra-gnus-recent-org-handle-mail/body))
 
-(defhydra hydra-gnus-recent-org-handle-mail (:color blue
-                                             :pre (message-box "Org Handle mail-Pre\n")
-                                             :post (message-box "Org Handle Mail-Post\n"))
+(define-key org-mode-map (kbd "C-c t") 'gnus-recent-org-handle-mail)
+
+(defhydra hydra-gnus-recent-org-handle-mail (:color blue)
   "Reply to email from current task"
+  ("h" gnus-recent-org-handle-mail-crumbs "View in helm")
   ("t" gnus-recent-org-handle-mail-top "Reply to top")
   ("v" gnus-recent-org-handle-mail-view "View emails")
-  ("h" gnus-recent-org-handle-mail-crumbs "View in helm")
   ("q" gnus-recent-org-clear-heading-alist "quit"))
-
-(define-key org-mode-map (kbd "C-c t") 'gnus-recent-org-handle-mail)
 
 (defun gnus-recent-org-get-entry (&optional keep-properties)
   "Get the entry text"
@@ -179,13 +189,6 @@ The messages will be shown in a Gnus ephemeral group."
       (org-get-entry)
     (gnus-string-remove-all-properties (org-get-entry))))
 
-(defun gnus-recent-org-heading-get-org-links-gnus ()
-  "Get the org-links under the current heading."
-  (interactive)
-  (when (eq major-mode 'org-agenda-mode)
-    (org-agenda-goto))
-  (gnus-recent-org-search-string-org-links-gnus (org-get-entry)))
-
 (defun gnus-recent-org-search-string-org-links-gnus (txt)
   "Search text TXT for org-links, having protocol \"gnus:\".
 Returns a list of org-links, that point to gnus articles."
@@ -194,17 +197,17 @@ Returns a list of org-links, that point to gnus articles."
                                (gnus-string-remove-all-properties txt))))
 
 (defun gnus-recent-org-get-orgids (txt)
-  "Find the org-ids in text TXT."
+  "Find the org-ids in org entry text TXT."
   (mapcar (lambda (x) (cadr (split-string x ":" t " +")))
           (mapcar 'car
                   (s-match-strings-all "^ +:ID:.+" txt))))
 
-(defun gnus-recent-org-get-heading-message-ids (id-list)
+(defun gnus-recent-org-filter-message-ids-list (id-list)
   "Get the article message-id that have any of the given org-ids.
 ID-LIST is a list of org-ids to search in `gnus-recent--articles-list'. Returns a
 combined list of all article message-ids found."
   ;; FIXME: use equal for the test
-  (mapcan '(lambda (id) (gnus-recent-filter-prop 'org-id id #'string=))
+  (mapcan '(lambda (id) (gnus-recent-filter-prop 'message-id id #'string=))
           id-list))
 
 (defun gnus-recent-org-message-add-header (header value)
@@ -225,9 +228,7 @@ value from `gnus-recent-org-get-heading-alist'."
    'X-Org-Id (or orgid
                  (car (alist-get 'orgids gnus-recent-org--current-heading-alist)))))
 
-(defhydra hydra-gnus-org-helm (:columns 4 :exit nil
-                               :pre  (message-box "Org-helm-PA-Pre\n")
-                               :post (message-box "Org-helm-PA-Post\n"))
+(defhydra hydra-gnus-org-helm (:columns 4 :exit nil)
   "Persistent actions"
   ("c" (gnus-recent-kill-new-org-link gnus-recent-helm-current-data-pa) "Copy Org link")
   ("b" (gnus-recent-bbdb-display-all  gnus-recent-helm-current-data-pa) "BBDB entries")

@@ -52,16 +52,6 @@
 (require 'bbdb)
 (require 'bbdb-mua)
 
-(defvar gnus-recent--articles-list nil
-  "The list of articles kept by gnus-recent.")
-
-(defvar gnus-recent--showing-recent nil
-  ;; TODO: isn't there some way of showing the calling function?
-  "Internal variable; true iff we're currently showing a recent article.")
-
-(defvar gnus-recent--temp-message-headers nil
-  "Internal variable; for temporarily placing header data from an outgoing message.")
-
 (defgroup gnus-recent nil
   "Article breadcrumbs for gnus."
   :tag "Gnus Recent"
@@ -104,6 +94,22 @@ keep the old format."
   '((t . (:inherit font-lock-type-face)))
   "Face used for dates in the recent articles list."
   :group 'gnus-recent)
+
+(defvar gnus-recent--articles-list nil
+  "The list of articles kept by gnus-recent.")
+
+(defvar gnus-recent--showing-recent nil
+  ;; TODO: isn't there some way of showing the calling function?
+  "Internal variable; true iff we're currently showing a recent article.")
+
+(defvar gnus-recent--temp-message-headers nil
+  "Internal variable; temporarily placing header data from an outgoing message.")
+
+(defconst gnus-recent-outgoing-message-prefix "->"
+  "A string prefix added to the article title for outgoing messages.
+The prefix is only for display purposes and helps to easily and
+quickly identify sent messages. Give it a value that can be
+reliably checked. Do not set to an empty string.")
 
 (defun gnus-recent-date-format (date)
   "Convert the DATE to string.
@@ -239,9 +245,9 @@ Warn if RECENT can't be deconstructed as expected."
   "Make a wide reply and yank to the current RECENT article."
   ;; TODO: handle the case the article/email doesn't existany more
   (gnus-recent--open-article recent)
-  (call-interactively 'gnus-summary-wide-reply-with-original)
-  (when (fboundp 'gnus-recent-org-message-add-header-orgid)
-    (gnus-recent-org-message-add-header-orgid)))
+  (call-interactively 'gnus-summary-wide-reply-with-original))
+  ;; (when (fboundp 'gnus-recent-org-message-add-header-orgid)
+  ;;   (gnus-recent-org-message-add-header-orgid)))
 
 (defun gnus-recent--show-article-thread (recent)
   "Show the RECENT gnus article thread in a summary buffer."
@@ -252,10 +258,12 @@ Warn if RECENT can't be deconstructed as expected."
 
 (defun gnus-recent--create-org-link (recent)
   "Return an `org-mode' link to RECENT Gnus article."
-  (format "[[gnus:%s#%s][Email from %s]]"
+  (format "[[gnus:%s#%s][Email %s%s]]"
           (alist-get 'group recent)
-          (replace-regexp-in-string "^<\\|>$" ""
-                                    (alist-get 'message-id recent))
+          (gnus-recent-string-unbracket (alist-get 'message-id recent))
+          (if (gnus-recent-outgoing-message-p recent)
+              ""
+            "from ")
           (bbdb-string-trim
            (replace-regexp-in-string "[][\t]" ""
                                      (substring (car recent) 0 48)))))
@@ -270,7 +278,6 @@ Returns a cons cell as (gnus-group . message-id)."
 (defun gnus-recent-string-unbracket (txt)
   "Trim brackets from string."
   (replace-regexp-in-string "^<\\|>$" "" txt))
-
 
 (defun gnus-recent-kill-new-org-link (recent)
   "Add to the `kill-ring' an `org-mode' link to RECENT Gnus article."
@@ -550,7 +557,8 @@ data should be available on `gnus-recent--temp-message-headers'."
       (setcdr r (rfc2047-decode-address-string (cdr r))))
     ;; This is a new message, can directly add to list... but better be safe.
     (gnus-recent-add-to-list
-     (list (format "-> %s: %s \t%s"
+     (list (format "%s%s: %s \t%s"
+                   gnus-recent-outgoing-message-prefix
                    (propertize (gnus-recent-get-email-name to-first t) 'face 'bold)
                    (alist-get 'subject hdrs)
                    (propertize date 'face 'gnus-recent-date-face))
@@ -577,6 +585,11 @@ an entry to `gnus-recent--articles-list'."
     (goto-char (point-min))
     (setq gnus-recent--temp-message-headers (mail-header-extract-no-properties))))
 
+(defun gnus-recent-outgoing-message-p (recent)
+  "Check the title of a gnus-recent article for the outgoing message prefix.
+RECENT is the gnus-recent article data."
+  (string= gnus-recent-outgoing-message-prefix
+           (substring (car recent) 0 (length gnus-recent-outgoing-message-prefix))))
 ;;
 ;; starting gnus-recent
 ;;

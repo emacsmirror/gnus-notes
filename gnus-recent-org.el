@@ -120,21 +120,37 @@ The messages will be shown in a Gnus ephemeral group."
 (defun gnus-recent-org-clear-heading-alist ()
   "Clear all data from variable `gnus-recent-org--current-heading-alist'."
   (interactive)
-  ;; (message-box "Clear current-heading-alist Suspended!!")
   (setq gnus-recent-org--current-heading-alist nil))
 
-;; FIXME: Exploratory code, need major overhaul.
-(defun gnus-recent-org-message-sent-actions ()
-  "Tidy up after an outgoing message is sent."
-  (when gnus-recent-org--current-heading-alist)
-  (org-with-point-at (alist-get 'org-hd-marker)
-    (org-back-to-heading)
-    (message-box "org-ID: %s\n" (org-id-get-create))
-    (org-add-log-setup 'note nil nil nil "[[gnus:INBOX#mylifeasadog@home.gr][This is a message email]]"))
-  (gnus-recent-org-clear-heading-alist))
+(defun gnus-recent-org-message-add-hooks ()
+  "Add the hooks for an outgoing message."
+  (add-hook 'message-sent-hook 'gnus-recent-org-message-sent-actions t)
+  (add-hook 'message-cancel-hook 'gnus-recent-org-message-remove-hooks))
 
-(add-hook 'message-sent-hook 'gnus-recent-org-message-sent-actions t)
-;; (remove-hook 'message-sent-hook 'gnus-recent-org-message-sent-actions)
+(defun gnus-recent-org-message-remove-hooks ()
+  "Remove the hooks set by `gnus-recent-org-message-add-hooks'."
+  (remove-hook 'message-sent-hook 'gnus-recent-org-message-sent-actions)
+  (remove-hook 'message-cancel-hook 'gnus-recent-org-message-remove-hooks))
+
+;; FIXME: Exploratory code, need to handle cancelling and aborting.
+;; FIXME: Message-send (C-c C-s) results in empty group field.
+(defun gnus-recent-org-message-sent-actions ()
+  "Tidy up after an outgoing message is sent.
+Add a gnus-link to the org entry as a log-note, then tidy up."
+  (when gnus-recent-org--current-heading-alist
+    (let* ((recent-out (car gnus-recent--articles-list))
+           (root-marker (alist-get 'org-hd-marker
+                                   gnus-recent-org--current-heading-alist))
+           (org-link (gnus-recent--create-org-link recent-out)))
+      ;; confirm the last item was an outgoing message
+      (when (gnus-recent-outgoing-message-p recent-out)
+        ;; FIXME: after exiting the log note, a user input for "comment syntax"
+        ;;        appears. This leads to an error, which doesn't seem to affect
+        ;;        the outgoing message nor the note taking.
+        (org-with-point-at root-marker
+          (org-add-log-setup 'note nil nil nil org-link))
+        (gnus-recent-org-clear-heading-alist)
+        (gnus-recent-org-message-remove-hooks)))))
 
 (defun gnus-recent-org-handle-mail-crumbs ()
   "Show available gnus messages from the current org headline in helm."
@@ -166,9 +182,15 @@ The messages will be shown in a Gnus ephemeral group."
 ;; <HE1PR0702MB374007926A69A5BA9F469833B7700@HE1PR0702MB3740.eurprd07.prod.outlook.com> OR <1859946832.1551532226619.JavaMail.root@7e5afac02a08> OR <87wolg9jyd.fsf@aia00054aia.gr> OR <871s3ob518.fsf@aia00054aia.gr> OR <43fc0c0fce9292d8bed09ca27.b1ed948b21.20190302133324.73f362d72f.17307e8e@mail197.sea51.mcsv.net>
 
 (defun gnus-recent-org-handle-mail ()
-  "Handle mail in org heading"
+  "Handle mail in org heading.
+First, this function sets the variable
+`gnus-recent--current-heading-alist' with the the current heading
+info. Second, it activates a hook to run after sending a message,
+that will take care of the org stuff. Then it call a hydra to
+select the action on the email articles."
   (interactive)
   (gnus-recent-org-set-heading-alist)
+  (gnus-recent-org-message-add-hooks)
   (hydra-gnus-recent-org-handle-mail/body))
 
 (define-key org-mode-map (kbd "C-c t") 'gnus-recent-org-handle-mail)
@@ -181,7 +203,9 @@ The messages will be shown in a Gnus ephemeral group."
   ("q" gnus-recent-org-clear-heading-alist "quit"))
 
 (defun gnus-recent-org-get-entry (&optional keep-properties)
-  "Get the entry text"
+  "Get the org entry text.
+With the optional KEEP-PROPERTIES non-nil keep the text
+properties. By default, text properties are removed."
   (interactive)
   (when (eq major-mode 'org-agenda-mode)
     (org-agenda-goto))
@@ -226,7 +250,7 @@ When the optional argument ORGID is missing, will get the orgid
 value from `gnus-recent-org-get-heading-alist'."
   (gnus-recent-org-message-add-header
    'X-Org-Id (or orgid
-                 (car (alist-get 'orgids gnus-recent-org--current-heading-alist)))))
+                  (alist-get 'uid gnus-recent-org--current-heading-alist))))
 
 (defhydra hydra-gnus-org-helm (:columns 4 :exit nil)
   "Persistent actions"

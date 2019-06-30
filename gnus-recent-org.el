@@ -36,6 +36,15 @@
 (require 'gnus-recent)
 (require 'org-gnus)
 
+(defgroup gnus-recent-org nil
+  "Org integration for gnus-recent"
+  :tag "Gnus Recent Org"
+  :group gnus-recent)
+
+(defcustom gnus-recent-org-capture-key "e"
+  :group 'gnus-recent-org
+  :type 'string)
+
 (defvar gnus-recent-org--current-org-id nil
   "Internal variable; for temporarily placing the current heading org-id.")
 
@@ -56,17 +65,13 @@
 The body of the org heading must have at least one gnus link to
 reply to."
   (interactive)
-  (when (eq major-mode 'org-agenda-mode)
-    (org-agenda-goto))
-  (let* ((entry-text (gnus-string-remove-all-properties (org-get-entry)))
-         (org-links-gnus (gnus-recent-org-search-string-org-links-gnus entry-text)))
-    (message-box "Mail Top\nNumber of links: %d\nTop link: %s\nSender: %s\n"
-                 (length entry-links)
-                 (car-safe entry-links)
-                 (if (> (length entry-links) 0)
-                     "Somebody"         ; (alist-get 'sender (car entry-links))
-                   "Nobody"))))
+  (let ((art (car-safe (alist-get 'articles-crumbs gnus-recent-org--current-heading-alist))))
+    (if art
+        (gnus-recent--reply-article-wide-yank art)
+      (gnus-message 5 "gnus-recent has lost the article, revisit top article.")
+      (gnus-recent-org-clear-heading-alist))))
 
+;; FIXME: use gnus-recent-org--current-heading-alist
 (defun gnus-recent-org-handle-mail-view ()
   "Show available gnus messages on the current org headline.
 The messages will be shown in a Gnus ephemeral group."
@@ -184,8 +189,12 @@ that will take care of the org stuff. Then it call a hydra to
 select the action on the email articles."
   (interactive)
   (gnus-recent-org-set-heading-alist)
-  (gnus-recent-org-message-add-hooks)
-  (hydra-gnus-recent-org-handle-mail/body))
+  (if (alist-get 'org-links-gnus gnus-recent-org--current-heading-alist)
+      (progn
+        (gnus-recent-org-message-add-hooks)
+        (hydra-gnus-recent-org-handle-mail/body))
+    (gnus-message 5 "No gnus links found in current org entry")
+    (gnus-recent-org-clear-heading-alist)))
 
 (defhydra hydra-gnus-recent-org-handle-mail (:color blue)
   "Reply to email from current task"
@@ -210,7 +219,7 @@ for emails."
     (gnus-recent--track-article)
     (when (window-configuration-p windc)
       (set-window-configuration windc))
-    (org-capture nil "e")))             ; FIXME: hardcoded template key
+    (org-capture nil gnus-recent-org-capture-key)))
 
 (defun gnus-recent-org-outgoing-mail ()
   "Associate a message being written with an existing org heading."

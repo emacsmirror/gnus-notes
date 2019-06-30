@@ -42,12 +42,6 @@
 (defvar gnus-recent-org--current-heading-alist nil
   "Internal variable; for temporarily placing the current heading info.")
 
-;; (org-defkey org-mode-map (kbd "C-c t") #'hydra-gnus-recent-org-handle-mail-top)
-;; (org-defkey org-mode-map (kbd "C-c v") #'gnus-recent-org-view)
-;; (eval-after-load "org-agenda"
-;;   '(progn (org-defkey org-agenda-mode-map (kbd "C-c t") #'gnus-recent-org-handle-mail)
-;;           (org-defkey org-agenda-mode-map (kbd "C-c v") #'gnus-recent-org-view)))
-
 (defhydra gnus-recent-org-trigger-actions (:color blue :columns 2)
   "List of actions on org-headings."
   ("t" gnus-recent-org-todo "change Todo")
@@ -66,7 +60,7 @@ reply to."
     (org-agenda-goto))
   (let* ((entry-text (gnus-string-remove-all-properties (org-get-entry)))
          (org-links-gnus (gnus-recent-org-search-string-org-links-gnus entry-text)))
-    (message-box "Number of links: %d\nTop link: %s\nSender: %s\n"
+    (message-box "Mail Top\nNumber of links: %d\nTop link: %s\nSender: %s\n"
                  (length entry-links)
                  (car-safe entry-links)
                  (if (> (length entry-links) 0)
@@ -79,7 +73,7 @@ The messages will be shown in a Gnus ephemeral group."
   (interactive)
   (let* ((entry-text (gnus-string-remove-all-properties (org-get-entry)))
          (org-links-gnus (gnus-recent-org-search-string-org-links-gnus entry-text)))
-    (message-box "Number of links: %d\nTop link: %s\nSender: %s\n"
+    (message-box "Mail-View\nNumber of links: %d\nTop link: %s\nSender: %s\n"
                  (length org-links-gnus)
                  (car-safe org-links-gnus)
                  (if (> (length org-links-gnus) 0)
@@ -193,14 +187,40 @@ select the action on the email articles."
   (gnus-recent-org-message-add-hooks)
   (hydra-gnus-recent-org-handle-mail/body))
 
-(define-key org-mode-map (kbd "C-c t") 'gnus-recent-org-handle-mail)
-
 (defhydra hydra-gnus-recent-org-handle-mail (:color blue)
   "Reply to email from current task"
   ("h" gnus-recent-org-handle-mail-crumbs "View in helm")
   ("t" gnus-recent-org-handle-mail-top "Reply to top")
   ("v" gnus-recent-org-handle-mail-view "View emails")
   ("q" gnus-recent-org-clear-heading-alist "quit"))
+
+(defun gnus-recent-org-incoming-mail ()
+  "Associate an email with an existing org heading.
+While viewing emails in gnus, in a summary or artile buffer,
+associate the message under point with an existing org header. To
+associate with a new org header use the org capture mechanism
+for emails."
+  (interactive)
+  (when (not (memq major-mode '(gnus-summary-mode gnus-article-mode)))
+    (user-error "Not in a gnus summary or article buffer"))
+  (let ((windc (and (eq major-mode 'gnus-article-mode)
+                    (current-window-configuration))))
+    (when windc
+      (gnus-article-show-summary))
+    (gnus-recent--track-article)
+    (when (window-configuration-p windc)
+      (set-window-configuration windc))
+    (org-capture nil "e")))             ; FIXME: hardcoded template key
+
+(defun gnus-recent-org-outgoing-mail ()
+  "Associate a message being written with an existing org heading."
+  (interactive)
+  ;; 1. get message heading id
+  ;; 2. save to temp variable
+  ;; 3. setup appropriate hooks
+  ;;    - message-sent-hook
+  ;; 4. use org capture to take a note and add it to heading
+  )
 
 (defun gnus-recent-org-get-entry (&optional keep-properties)
   "Get the org entry text.
@@ -270,7 +290,17 @@ RECENT is the current article in the helm buffer."
   (setq gnus-recent-helm-current-data-pa recent)
   (hydra-gnus-org-helm/body))
 
-
+;; keybindings
+;; (org-defkey org-mode-map (kbd "C-c t") #'hydra-gnus-recent-org-handle-mail-top)
+;; (org-defkey org-mode-map (kbd "C-c v") #'gnus-recent-org-view)
+;; (eval-after-load "org-agenda"
+;;   '(progn (org-defkey org-agenda-mode-map (kbd "C-c t") #'gnus-recent-org-handle-mail)
+;;           (org-defkey org-agenda-mode-map (kbd "C-c v") #'gnus-recent-org-view)))
+(define-key org-mode-map (kbd "C-c t") 'gnus-recent-org-handle-mail)
+(org-defkey org-agenda-keymap (kbd "C-c t") 'gnus-recent-org-handle-mail)
+(define-key gnus-summary-mode-map (kbd "C-c t") 'gnus-recent-org-incoming-mail)
+(define-key gnus-article-mode-map (kbd "C-c t") 'gnus-recent-org-incoming-mail)
+(define-key message-mode-map (kbd "C-c t") 'gnus-recent-org-outgoing-mail)
 
 (provide 'gnus-recent-org)
 ;;; gnus-recent-org.el ends here

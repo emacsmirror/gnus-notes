@@ -98,10 +98,6 @@ keep the old format."
 (defvar gnus-recent--articles-list nil
   "The list of articles kept by gnus-recent.")
 
-(defvar gnus-recent--showing-recent nil
-  ;; TODO: isn't there some way of showing the calling function?
-  "Internal variable; true iff we're currently showing a recent article.")
-
 (defvar gnus-recent--temp-message-headers nil
   "Internal variable; temporarily placing header data from an outgoing message.")
 
@@ -142,34 +138,32 @@ display-name."
 
 (defun gnus-recent--get-article-data ()
     "Get the article data used for `gnus-recent' based on `gnus-summary-article-header'."
-    (unless gnus-recent--showing-recent
-      (let* (;; not needed
-             ;; (article-number (gnus-summary-article-number))
-             ;; (article-header (gnus-summary-article-header article-number))
-             (article-header (gnus-summary-article-header))
-             (date  (gnus-recent-date-format (mail-header-date article-header)))
-             (subject (mail-header-subject article-header))
-             (author (mail-header-from article-header))
-             (recipients (mail-header-extra article-header)))
-        (dolist (r recipients)
-          (setcdr r (rfc2047-decode-address-string (cdr r))))
-        (list (format "%s: %s \t%s"
-                      (propertize (gnus-recent-get-email-name author t) 'face 'bold)
-                      subject
-                      (propertize date 'face 'gnus-recent-date-face))
-              (cons 'group gnus-newsgroup-name)
-              (cons 'message-id (mail-header-id article-header))
-              (cons 'date date)
-              (cons 'subject subject)
-              (cons 'sender author)
-              (cons 'recipients recipients)
-              (cons 'references (mail-header-references article-header))))))
+    (let* (;; not needed
+           ;; (article-number (gnus-summary-article-number))
+           ;; (article-header (gnus-summary-article-header article-number))
+           (article-header (gnus-summary-article-header))
+           (date  (gnus-recent-date-format (mail-header-date article-header)))
+           (subject (mail-header-subject article-header))
+           (author (mail-header-from article-header))
+           (recipients (mail-header-extra article-header)))
+      (dolist (r recipients)
+        (setcdr r (rfc2047-decode-address-string (cdr r))))
+      (list (format "%s: %s \t%s"
+                    (propertize (gnus-recent-get-email-name author t) 'face 'bold)
+                    subject
+                    (propertize date 'face 'gnus-recent-date-face))
+            (cons 'group gnus-newsgroup-name)
+            (cons 'message-id (mail-header-id article-header))
+            (cons 'date date)
+            (cons 'subject subject)
+            (cons 'sender author)
+            (cons 'recipients recipients)
+            (cons 'references (mail-header-references article-header)))))
 
 (defun gnus-recent--track-article ()
   "Store this article in the recent article list.
 For tracking of Backend moves (B-m) see `gnus-recent--track-move-article'."
-  (gnus-recent-add-to-list (gnus-recent--get-article-data))
-  (setq gnus-recent--showing-recent nil))
+  (gnus-recent-add-to-list (gnus-recent--get-article-data)))
 
 (defun gnus-recent--track-move-article (action article _from-group to-group _select-method)
   "Track backend move (B-m) of articles.
@@ -215,18 +209,17 @@ header passed when the hook is run. For use by
 Unless NO-RETRY, we try going further back if the top of the
 article list is the article we're currently looking at."
   (interactive)
-  (let ((gnus-recent--showing-recent t))
-    (if (not gnus-recent--articles-list)
-        (message "No recent article to show")
-      (gnus-recent--action
-       (gnus-recent--shift gnus-recent--articles-list)
-       (lambda (message-id group)
-         (if (and (not no-retry)
-                  (equal (current-buffer) gnus-summary-buffer)
-                  (equal message-id (mail-header-id (gnus-summary-article-header))))
-             (gnus-recent-goto-previous 'no-retry)
-           (gnus-summary-read-group group 1) ; have to show at least one old one
-           (gnus-summary-refer-article message-id)))))))
+  (if (not gnus-recent--articles-list)
+      (message "No recent article to show")
+    (gnus-recent--action
+     (gnus-recent--shift gnus-recent--articles-list)
+     (lambda (message-id group)
+       (if (and (not no-retry)
+                (equal (current-buffer) gnus-summary-buffer)
+                (equal message-id (mail-header-id (gnus-summary-article-header))))
+           (gnus-recent-goto-previous 'no-retry)
+         (gnus-summary-read-group group 1) ; have to show at least one old one
+         (gnus-summary-refer-article message-id))))))
 
 (defun gnus-recent--action (recent func)
   "Find `message-id' and group arguments from RECENT, call FUNC on them.

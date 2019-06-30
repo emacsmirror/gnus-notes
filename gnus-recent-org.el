@@ -60,6 +60,9 @@
   ("s" gnus-recent-org-capture-sibling "capture to Sibling")
   ("q" nil "Quit, don't associate"))
 
+;; FIXME: here it is hoped the top article-crumb is the top link. Most likely true,
+;; but no guaranteed. Crumbs may have been deleted. Need to check and confirm, this
+;; to be the case.
 (defun gnus-recent-org-handle-mail-top ()
   "Reply to the top email message on the current org headline.
 The body of the org heading must have at least one gnus link to

@@ -39,17 +39,18 @@
 (defgroup gnus-recent-org nil
   "Org integration for gnus-recent"
   :tag "Gnus Recent Org"
-  :group gnus-recent)
+  :group 'gnus-recent)
 
 (defcustom gnus-recent-org-capture-key "e"
+  "A key from `org-capture-templates' to be used."
   :group 'gnus-recent-org
   :type 'string)
 
 (defvar gnus-recent-org--current-org-id nil
-  "Internal variable; for temporarily placing the current heading org-id.")
+  "Internal variable; for temporary holding the current heading org-id.")
 
 (defvar gnus-recent-org--current-heading-alist nil
-  "Internal variable; for temporarily placing the current heading info.")
+  "Internal variable; for temporary holding the current heading info.")
 
 (defhydra gnus-recent-org-trigger-actions (:color blue :columns 2)
   "List of actions on org-headings."
@@ -260,8 +261,8 @@ Returns a list of org-links, that point to gnus articles."
 
 (defun gnus-recent-org-filter-message-ids-list (id-list)
   "Get the article message-id that have any of the given org-ids.
-ID-LIST is a list of org-ids to search in `gnus-recent--articles-list'. Returns a
-combined list of all article message-ids found."
+ID-LIST is a list of org-ids to search in `gnus-recent--articles-list'.
+Returns a combined list of all article message-ids found."
   ;; FIXME: use equal for the test
   (mapcan '(lambda (id) (gnus-recent-filter-prop 'message-id id #'string=))
           id-list))

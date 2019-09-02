@@ -265,7 +265,7 @@ Warn if RECENT can't be deconstructed as expected."
   "Split a gnus article org link into its parts.
 Returns a cons cell as (gnus-group . message-id)."
   (when link
-    (let ((s (subseq (split-string (substring-no-properties link 7) "[]#]") 0 2)))
+    (let ((s (cl-subseq (split-string (substring-no-properties link 7) "[]#]") 0 2)))
       (cons (car s) (concat "<" (nth 1 s) ">")))))
 
 (defun gnus-recent-string-unbracket (txt)

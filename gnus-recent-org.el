@@ -52,6 +52,9 @@
 (defvar gnus-recent-org--current-heading-alist nil
   "Internal variable; for temporary holding the current heading info.")
 
+(defvar gnus-recent-org--last-window-configuration nil
+  "Internal variable; for saving a window configuration")
+
 (defhydra gnus-recent-org-trigger-actions (:color blue :columns 2)
   "List of actions on org-headings."
   ("t" gnus-recent-org-todo "change Todo")
@@ -109,6 +112,7 @@ The messages will be shown in a Gnus ephemeral group."
       (list
        (cons 'uid uid)
        (cons 'org-hd-marker org-hd-marker)
+       (cons 'windc gnus-recent-org--last-window-configuration)
        (cons 'entry-text hd-txt)
        (cons 'org-links-gnus org-links-gnus)
        (cons 'orgids (gnus-recent-org-get-orgids hd-txt))
@@ -155,6 +159,19 @@ Add a gnus-link to the org entry as a log-note, then tidy up."
         (gnus-recent-org-clear-heading-alist)
         (gnus-recent-org-message-remove-hooks)))))
 
+(defun gnus-recent-org-outshine-comment-region-advice (beg end &optional arg)
+       "Check the current major mode."
+       (eq major-mode 'gnus-summary-mode))
+
+;; don't allow outshine-comment-region to proceed for gnus buffers.
+(eval-after-load 'outshine
+  (advice-add 'outshine-comment-region
+              :before-until
+              #'gnus-recent-org-outshine-comment-region-advice))
+
+;; if needed during development.
+;; (advice-remove 'outshine-comment-region #'gnus-recent-org-outshine-comment-region-advice)
+
 (defun gnus-recent-org-handle-mail-crumbs ()
   "Show available gnus messages from the current org headline in helm."
   (interactive)
@@ -192,6 +209,7 @@ info. Second, it activates a hook to run after sending a message,
 that will take care of the org stuff. Then it call a hydra to
 select the action on the email articles."
   (interactive)
+  (setq gnus-recent-org--last-window-configuration (current-window-configuration)) 
   (gnus-recent-org-set-heading-alist)
   (if (alist-get 'org-links-gnus gnus-recent-org--current-heading-alist)
       (progn

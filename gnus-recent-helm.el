@@ -115,6 +115,7 @@ turned on and off, as needed."
     (_ (assq-delete-all 'multiline source)
        candidates)))
 
+;; FIXME: should be using gnus-group-decoded-name
 (defun gnus-recent-helm-candidates-display-default (item)
   "The default text to display for each article.
 Is the function argument to `mapcar' for establishing the
@@ -125,7 +126,7 @@ returns a cons cell (name . item), where name is the article
 display text."
   (cons (concat (car item)
                 " ["
-                (propertize (gnus-group-decoded-name (alist-get 'group item))
+                (propertize (gnus-recent-decode-utf8 (alist-get 'group item))
                             'face 'gnus-recent-group-face)
                 "]")
         item))

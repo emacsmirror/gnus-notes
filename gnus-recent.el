@@ -107,6 +107,13 @@ The prefix is only for display purposes and helps to easily and
 quickly identify sent messages. Give it a value that can be
 reliably checked. Do not set to an empty string.")
 
+(defun gnus-recent-decode-utf8 (string &optional charset)
+  "Decode a gnus-group name.
+Replaces `gnus-group-name-decode' for decoding group names. For
+gnus group name a utf-8-emacs CHARSET is assumed unless provided
+otherwise."
+  (decode-coding-string string (or charset 'utf-8-emacs) t))
+
 (defun gnus-recent-date-format (date)
   "Convert the DATE to string.
 Date format specified in `gnus-recent-format-time-string'."
@@ -583,6 +590,16 @@ an entry to `gnus-recent--articles-list'."
 RECENT is the gnus-recent article data."
   (string= gnus-recent-outgoing-message-prefix
            (substring (car recent) 0 (length gnus-recent-outgoing-message-prefix))))
+
+;;
+;; Redifining gnus stuff
+;;
+;; FIXME: should not need to redifine other libraries.
+(defmacro gnus-group-entry (group)
+  "Get the newsrc entry for GROUP.
+Modified not to error when `gnus-newsrc-hashtb' is not assigned."
+  (when (hash-table-p gnus-newsrc-hashtb) `(gethash ,group gnus-newsrc-hashtb)))
+
 ;;
 ;; starting gnus-recent
 ;;

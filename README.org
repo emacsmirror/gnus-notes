@@ -1,68 +1,48 @@
-#+TITLE: gnus-recent
+#+TITLE: gnus-mylist
 
-# [[https://melpa.org/#/gnus-recent][https://melpa.org/packages/gnus-recent-badge.svg]]
+* Gnus-Mylist
+Track (my) Gnus articles and emails - not all of them, just what matters to me,
+using a list and the convenience of a helm interface.
 
-Avoid having to open Gnus and find the right Group just to get back to
-that e-mail you were reading.
+Whether email or news, some people believe Gnus is a great article reader. They
+probably like the Gnus philosophy, the way it "gets out of your way", its
+flexibility and more.
 
-Or hit a key while reading one article to pop back through the stack
-of previously read articles, even if they were in a different Group.
+The gnus-mylist works with your Gnus, it can not replace it. Neither can it damage
+or hurt your Gnus. Your Gnus is safe. It just works on the side, unimpending,
+efficiently and quietly. Providing a good level of Gnus-Org integration. It will
+enhance your Gnus experience.
 
-Or insert a link to a recently read e-mail in an org-mode buffer by
-just picking one with [[https://github.com/abo-abo/swiper/][ivy]]:
+This work was inspired by unhammer's [[https://github.com/unhammer/gnus-recent/blob/master/gnus-recent.el][gnus-recent]] and by ericabramamsens's [[http://elpa.gnu.org/packages/gnorb.html][gnorb]]
+packages.
 
-#+ATTR_HTML: :alt demo of gnus-recent inserting link with ivy in org-mode
-[[file:gnus-recent-org-mode.gif][file:gnus-recent-org-mode.gif]]
+This is still work in progress. Not ready yet for prime time. But it safe.
 
-* Installation
+** Prerequisites
 
-# ** MELPA
-# If you use [[https://melpa.org/][MELPA]], you can just do =M-x list-packages=, find
-# =gnus-recent= in the list and hit =i x=.
+   The following packages are required, for =gnus-mylist=:
+   - =bbdb= and =bbdb-mua=
+   - =gnus=
+   - =org-gnus= or the newer =ol-gnus=.
+   - =helm-lib=
+   - =s=
+   - =rfc2047=
 
-** Manual
-Just put =gnus-recent.el= (and optionally =gnus-recent-ivy.el=)
-somewhere in =load-path=.
+** Installation
 
+   Installation is still a manual process. Place the files in a directory
+   (preferably of their own). Before you start your Gnus, in your Emacs enter the
+   command =M-x load-file= to load the file =load-all.el=. Now your gnus-mylist is
+   waiting to start tracking your Gnus.
 
-* Usage
+** Usage
 
-After reading some articles in Gnus and then doing whatever, doing
-=gnus-recent-goto-previous= will open the last read article and rotate
-the list, so you can keep calling it to go further back.
+   Start your =gnus= and read few articles or emails. To view the list of the emails
+   and article just read, type the command:
+   : M-x gnus-mylist-helm
 
-Doing =gnus-recent-ivy= will let you pick an article to
-re-open. Hitting =M-o l= will insert an =org-mode= link to the article
-instead.
-
-** Manual, loading on startup:
-
-To use, require and bind whatever keys you prefer to the
-interactive function:
-
-#+BEGIN_SRC emacs-lisp
-  (require 'gnus-recent)
-  (define-key gnus-summary-mode-map (kbd "l") #'gnus-recent-goto-previous) ;
-  (define-key gnus-group-mode-map (kbd "C-c L") #'gnus-recent-goto-previous)
-
-  (require 'gnus-recent-ivy)
-  (global-set-key (kbd "<f3>") #'gnus-recent-ivy)
-#+END_SRC
-
-** With use-package, enabled after org:
-
-If you prefer =use-package=, the above settings would be:
-
-#+BEGIN_SRC emacs-lisp
-  (use-package gnus-recent
-    :load-path "~/src/gnus-recent"       ; wherever you checked this out
-    :after gnus
-    :config
-    (define-key gnus-summary-mode-map (kbd "l") #'gnus-recent-goto-previous)
-    (define-key gnus-group-mode-map (kbd "C-c L") #'gnus-recent-goto-previous))
-
-  (use-package gnus-recent-ivy
-    :load-path "~/src/gnus-recent"       ; wherever you checked this out
-    :after gnus
-    :bind (("<f3>" . gnus-recent-ivy)))
-#+END_SRC
+   The =C-c t= key binding is activated, by default with different actions
+   depending on the mode:
+   - in org-mode, it lists all the =gnus:= type links under the current org subtree.
+   - in summary or article mode, i.e. while reading, places a gnus link under the
+     current org heading.

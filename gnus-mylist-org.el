@@ -34,7 +34,8 @@
 
 (require 's)
 (require 'gnus-mylist)
-(require 'org-gnus)
+(unless (require 'ol-gnus nil 'noerror)
+  (require 'org-gnus))
 
 (defgroup gnus-mylist-org nil
   "Org integration for gnus-mylist"

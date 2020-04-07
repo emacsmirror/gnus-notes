@@ -46,7 +46,8 @@
 ;;; Code:
 
 (require 'gnus-sum)
-(require 'org-gnus)
+(unless (require 'ol-gnus nil 'noerror)
+  (require 'org-gnus))
 (require 'rfc2047)
 (require 'helm-lib)
 (require 'bbdb)

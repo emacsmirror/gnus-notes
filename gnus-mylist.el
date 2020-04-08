@@ -102,12 +102,6 @@ keep the old format."
 (defvar gnus-mylist--temp-message-headers nil
   "Internal variable; temporarily placing header data from an outgoing message.")
 
-(defconst gnus-mylist-outgoing-message-prefix "->"
-  "A string prefix added to the article title for outgoing messages.
-The prefix is only for display purposes and helps to easily and
-quickly identify sent messages. Give it a value that can be
-reliably checked. Do not set to an empty string.")
-
 (defun gnus-mylist-decode-utf8 (string &optional charset)
   "Decode a gnus-group name.
 Replaces `gnus-group-name-decode' for decoding group names. For
@@ -559,7 +553,7 @@ data should be available on `gnus-mylist--temp-message-headers'."
     ;; This is a new message, can directly add to list... but better be safe.
     (gnus-mylist-add-to-list
      (list (format "%s%s: %s \t%s"
-                   gnus-mylist-outgoing-message-prefix
+                   gnus-summary-to-prefix
                    (propertize (gnus-mylist-get-email-name to-first t) 'face 'bold)
                    (alist-get 'subject hdrs)
                    (propertize date 'face 'gnus-mylist-date-face))
@@ -589,8 +583,8 @@ an entry to `gnus-mylist--articles-list'."
 (defun gnus-mylist-outgoing-message-p (recent)
   "Check the title of a gnus-mylist article for the outgoing message prefix.
 RECENT is the gnus-mylist article data."
-  (string= gnus-mylist-outgoing-message-prefix
-           (substring (car recent) 0 (length gnus-mylist-outgoing-message-prefix))))
+  (string= gnus-summary-to-prefix
+           (substring (car recent) 0 (length gnus-summary-to-prefix))))
 
 ;;
 ;; Redifining gnus stuff

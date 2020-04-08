@@ -243,7 +243,7 @@ Also a number of possible actions are defined."
                              ("Remove marked article(s)"   . gnus-mylist-helm-forget)
                              ("Display BBDB entries"       . gnus-mylist-bbdb-display-all)
                              ("Clear all"                  . gnus-mylist-forget-all)))
-        :buffer "*helm gnus recent*"
+        :buffer "*helm gnus mylist*"
         :truncate-lines t))
 
 (provide 'gnus-mylist-helm)

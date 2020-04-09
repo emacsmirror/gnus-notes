@@ -150,7 +150,8 @@ display-name."
            (recipients (mail-header-extra article-header)))
       (dolist (r recipients)
         (setcdr r (rfc2047-decode-address-string (cdr r))))
-      (list (format "%s: %s \t%s"
+      (list (format "%s%s: %s \t%s"
+                    (gnus-mylist--article-display-prefix author recipients)
                     (propertize (gnus-mylist--article-display-name author recipients) 'face 'bold)
                     subject
                     (propertize date 'face 'gnus-mylist-date-face))
@@ -164,19 +165,18 @@ display-name."
 
 (defun gnus-mylist--article-display-prefix (sender &optional recipients)
   "Display the proper article prefix based on article SENDER and RECIPIENTS."
-  (if (string-match (ignored-from-addresses) sender)
-      (if (alist-get 'Newsgroups recipients)
+  (if (string-match (gnus-ignored-from-addresses) sender)
+      (if (and recipients (alist-get 'Newsgroups recipients))
           gnus-summary-newsgroup-prefix
         gnus-summary-to-prefix)
-    "")
-  )
+    ""))
 
 (defun gnus-mylist--article-display-name (sender recipients)
   "Compose the display name for the article.
 If SENDER matches the `gnus-ignored-from-addresses' then use the first RECIPIENTS
 name. If the To header has no name, then fall back to a newsgroup name, if
 available."
-  (when (string-match (ignored-from-addresses) sender)
+  (when (string-match (gnus-ignored-from-addresses) sender)
     (setq sender (or (car-safe (bbdb-split ","
                                            (or (alist-get 'To recipients)
                                                (alist-get 'Newsgroups recipients)

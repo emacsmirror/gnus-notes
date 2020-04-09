@@ -151,7 +151,7 @@ display-name."
       (dolist (r recipients)
         (setcdr r (rfc2047-decode-address-string (cdr r))))
       (list (format "%s: %s \t%s"
-                    (propertize (gnus-mylist-get-email-name author t) 'face 'bold)
+                    (propertize (gnus-mylist--article-display-name author recipients) 'face 'bold)
                     subject
                     (propertize date 'face 'gnus-mylist-date-face))
             (cons 'group gnus-newsgroup-name)
@@ -161,6 +161,28 @@ display-name."
             (cons 'sender author)
             (cons 'recipients recipients)
             (cons 'references (mail-header-references article-header)))))
+
+(defun gnus-mylist--article-display-prefix (sender &optional recipients)
+  "Display the proper article prefix based on article SENDER and RECIPIENTS."
+  (if (string-match (ignored-from-addresses) sender)
+      (if (alist-get 'Newsgroups recipients)
+          gnus-summary-newsgroup-prefix
+        gnus-summary-to-prefix)
+    "")
+  )
+
+(defun gnus-mylist--article-display-name (sender recipients)
+  "Compose the display name for the article.
+If SENDER matches the `gnus-ignored-from-addresses' then use the first RECIPIENTS
+name. If the To header has no name, then fall back to a newsgroup name, if
+available."
+  (when (string-match (ignored-from-addresses) sender)
+    (setq sender (or (car-safe (bbdb-split ","
+                                           (or (alist-get 'To recipients)
+                                               (alist-get 'Newsgroups recipients)
+                                               "")))
+                     "")))
+  (gnus-mylist-get-email-name sender t))
 
 (defun gnus-mylist--track-article ()
   "Store this article in the recent article list.
@@ -545,7 +567,8 @@ data should be available on `gnus-mylist--temp-message-headers'."
          (date (gnus-mylist-date-format (alist-get 'date hdrs)))
          (author (rfc2047-decode-address-string (or (alist-get 'from hdrs) "")))
          (recipients (rassq-delete-all nil
-                                       (list (cons 'To (alist-get 'to hdrs))
+                                       (list (cons 'Newsgroups (alist-get 'newsgroups hdrs))
+                                             (cons 'To (alist-get 'to hdrs))
                                              (cons 'Cc (alist-get 'cc hdrs)))))
          (to-first (car (bbdb-split "," (or (alist-get 'To recipients) "")))))
     (dolist (r recipients)
@@ -553,7 +576,9 @@ data should be available on `gnus-mylist--temp-message-headers'."
     ;; This is a new message, can directly add to list... but better be safe.
     (gnus-mylist-add-to-list
      (list (format "%s%s: %s \t%s"
-                   gnus-summary-to-prefix
+                   (if (alist-get 'Newsgroups recipients)
+                       gnus-summary-newsgroup-prefix
+                     gnus-summary-to-prefix)
                    (propertize (gnus-mylist-get-email-name to-first t) 'face 'bold)
                    (alist-get 'subject hdrs)
                    (propertize date 'face 'gnus-mylist-date-face))
@@ -575,7 +600,8 @@ headers by default. Saves the header data to variable
 `gnus-mylist--temp-message-header' so it can get out of the way
 as quickly as possible. After the message is sent,
 `gnus-mylist--track-message' processes the header data and adds
-an entry to `gnus-mylist--articles-list'."
+an entry to `gnus-mylist--articles-list'.
+Note that `mail-header-extract' downcases the property headers."
   (save-restriction
     (goto-char (point-min))
     (setq gnus-mylist--temp-message-headers (mail-header-extract-no-properties))))

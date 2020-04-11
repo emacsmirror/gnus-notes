@@ -1,11 +1,11 @@
 ;;; gnus-mylist.el --- article breadcrumbs for Gnus -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018 Kevin Brubeck Unhammer
+;; Copyright (C) 2020 Deus Max
 
-;; Author: Kevin Brubeck Unhammer <unhammer@fsfe.org>
-;; Version: 0.2.0
-;; URL: https://github.com/unhammer/gnus-mylist
-;; Package-Requires: ((emacs "25.3.2"))
+;; Author: Deus Max <deusmax@gmx.com>
+;; Version: 0.3.0
+;; URL: https://github.com/deusmax/gnus-mylist
+;; Package-Requires: ((emacs "26.0.0"))
 ;; Keywords: convenience, mail
 
 ;; This file is not part of GNU Emacs.
@@ -25,23 +25,10 @@
 
 ;;; Commentary:
 
-;;; Avoid having to open Gnus and find the right group just to get back to
-;;; that e-mail you were reading.
-
-;;; To use, require and bind whatever keys you prefer to the
-;;; interactive functions:
+;;; To use, require:
 ;;;
 ;;; (require 'gnus-mylist)
-;;; (define-key gnus-summary-mode-map (kbd "l") #'gnus-mylist-goto-previous)
-;;; (define-key gnus-group-mode-map (kbd "C-c L") #'gnus-mylist-goto-previous)
-
-;;; If you prefer `use-package', the above settings would be:
 ;;;
-;;; (use-package gnus-mylist
-;;;   :after gnus
-;;;   :config
-;;;   (define-key gnus-summary-mode-map (kbd "l") #'gnus-mylist-goto-previous)
-;;;   (define-key gnus-group-mode-map (kbd "C-c L") #'gnus-mylist-goto-previous))
 
 ;;; Code:
 

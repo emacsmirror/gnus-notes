@@ -1,4 +1,4 @@
-;;; gnus-mylist-org.el --- Gnus Recent -*- lexical-binding: t -*-
+;;; gnus-mylist-org.el --- Gnus Mylist -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Deus Max
 
@@ -243,7 +243,9 @@ for emails."
     (gnus-mylist--track-article)
     (when (window-configuration-p windc)
       (set-window-configuration windc))
-    (org-capture nil gnus-mylist-org-capture-key)))
+    (org-capture nil
+                 (find gnus-mylist-org-capture-key
+                       (mapcar #'car org-capture-templates) :test #'equal))))
 
 (defun gnus-mylist-org-outgoing-mail ()
   "Associate a message being written with an existing org heading."

@@ -244,8 +244,8 @@ for emails."
     (when (window-configuration-p windc)
       (set-window-configuration windc))
     (org-capture nil
-                 (find gnus-mylist-org-capture-key
-                       (mapcar #'car org-capture-templates) :test #'equal))))
+                 (cl-find gnus-mylist-org-capture-key
+                          (mapcar #'car org-capture-templates) :test #'equal))))
 
 (defun gnus-mylist-org-outgoing-mail ()
   "Associate a message being written with an existing org heading."

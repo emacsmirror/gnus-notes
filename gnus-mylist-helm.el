@@ -1,9 +1,13 @@
 ;;; gnus-mylist-helm.el --- select recently read Gnus articles with helm -*- lexical-binding: t -*-
 ;;
-;; Version: 0.1.0
-;; Package-Requires: ((emacs "25.3.2") (gnus-mylist "0.2.0") (helm))
-;; Keywords: convenience, mail
+;; Copyright (C) 2020 Deus Max
 
+;; Author: Deus Max <deusmax@gmx.com>
+;; Version: 0.3.0
+;; URL: https://github.com/deusmax/gnus-mylist
+;; Package-Requires: ((emacs "26.0.0"))
+;; Keywords: convenience, mail
+;;
 ;; This file is not part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -21,20 +25,10 @@
 
 ;;; Commentary:
 
-;;; Avoid having to open Gnus and find the right group just to get back to
-;;; that e-mail you were reading.
-
-;;; To use, require and bind whatever keys you prefer to the
-;;; interactive functions:
+;;; To use, require:
 ;;;
 ;;; (require 'gnus-mylist-helm)
-;;; (global-set-key (kbd "<f3>") #'gnus-mylist-helm)
-
-;;; If you prefer `use-package', the above settings would be:
 ;;;
-;;; (use-package gnus-mylist-helm
-;;;   :after gnus
-;;;   :bind (("<f3>" . gnus-mylist-helm)))
 
 ;;; Code:
 

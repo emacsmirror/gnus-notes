@@ -1,11 +1,11 @@
 ;;; gnus-mylist-org.el --- Gnus Mylist -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Deus Max
+;; Copyright (C) 2020 Deus Max
 
 ;; Author: Deus Max <deusmax@gmx.com>
-;; Version: 0.1.0
+;; Version: 0.3.0
 ;; URL: https://github.com/deusmax/gnus-mylist
-;; Package-Requires: ((emacs "25.3.2"))
+;; Package-Requires: ((emacs "26.0.0"))
 ;; Keywords: convenience, mail
 
 ;; This file is not part of GNU Emacs.
@@ -25,10 +25,10 @@
 
 ;;; Commentary:
 
-;;; Keep track of your seen messages, using a helm interface. Guns-recent provides
+;;; Keep track of your seen messages, using a helm interface. Gnus-mylist provides
 ;;; an interface with minimun configuration. It should "just work".
 ;;; This file provides integration with your Org-mode TODO headings. It is inspired
-;;; by Gnorb.
+;;; by gnorb and gnus-recent.
 
 ;;; Code:
 

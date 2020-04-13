@@ -1,4 +1,4 @@
-;;; gnus-mylist.el --- article breadcrumbs for Gnus -*- lexical-binding: t -*-
+;;; gnus-mylist.el --- keep a list of recently read Gnus articles  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Deus Max
 

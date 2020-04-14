@@ -25,10 +25,12 @@
 
 ;;; Commentary:
 
-;;; Keep track of your seen messages, using a helm interface. Gnus-mylist provides
-;;; an interface with minimun configuration. It should "just work".
-;;; This file provides integration with your Org-mode TODO headings. It is inspired
-;;; by gnorb and gnus-recent.
+;; Keep track of your seen messages, using a helm interface.
+;; Gnus-mylist provides an interface with minimum configuration.
+;; It should "just work".
+;; This file provides integration with your Org-mode and TODO headings.
+
+;; It is inspired by gnorb and gnus-recent.
 
 ;;; Code:
 

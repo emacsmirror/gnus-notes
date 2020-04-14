@@ -1,4 +1,4 @@
-;;; gnus-mylist-helm.el --- select recently read Gnus articles with helm -*- lexical-binding: t -*-
+;;; gnus-mylist-helm.el --- select Gnus mylist articles with helm -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2020 Deus Max
 
@@ -24,6 +24,9 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; Viewing gnus-mylist with the powerfull helm interface brings great
+;; search and all the other goodness provided by helm.
 
 ;;; To use, require:
 ;;;

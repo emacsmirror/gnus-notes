@@ -1,4 +1,4 @@
-;;; gnus-mylist.el --- keep a list of recently read Gnus articles  -*- lexical-binding: t -*-
+;;; gnus-mylist.el --- keep a list of read Gnus articles  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Deus Max
 
@@ -25,13 +25,52 @@
 
 ;;; Commentary:
 
+
+;; Gnus-mylist keeps a list of read (viewed) Gnus articles.
+
+;; This is "my list", so I can keep only the articles that are
+;; important to me. The rest I can simply remove from mylist,
+;; without affecting Gnus. If an article is removed, by accident or
+;; I want it back for whatever reason, no problem. All I have to do
+;; is view the article in gnus, and it is back on the list !
+
+;; Gnus mylist works in the background silently, keeping track of
+;; the articles read with gnus. When an article is read, it adds it
+;; to mylist. Simply, that's all. It removes deleted articles or
+;; the ones expunged by gnus.
+
+;; Gnus-mylist is similar to the Gnus registry, but whereas the
+;; registry tries to catch everything, gnus-mylist is light-weight.
+;; It doesn't try to keep everything. Only the articles "I have"
+;; read. Its job is much simpler. "My read" articles are the only
+;; really important "to me" articles, isn't is so ?
+
+;; This simplicity allows the user to add and remove articles to
+;; gnus-mylist, stress free.
+
+;; Viewing gnus-mylist with the powerful helm interface brings great
+;; search capabilities and all the other helm goodness.
+;; Gnus-mylist has been built around helm.
+
+;; Additional integration provided with:
+;; - org-mode, with gnus-mylist-org
+;; - BBDB built-in with gnus (gnus-insinuate)
+;; - EBDB (todo)
+
+;; Gnus is not limited to email, that is why gnus uses the term "articles".
+;; Gnus-mylist follows the Gnus general philosophy, it also uses the term
+;; "articles". Most testing has been done on email (and IMAP in particular) and RSS.
+
+;; It is inspired by gnorb and gnus-recent.
+
 ;;; To use, require:
-;;;
-;;; (require 'gnus-mylist)
-;;;
+;;
+;; (require 'gnus-mylist)
+;;
 
 ;;; Code:
 
+(require 'gnus)
 (require 'gnus-sum)
 (unless (require 'ol-gnus nil 'noerror)
   (require 'org-gnus))

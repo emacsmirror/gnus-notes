@@ -1,11 +1,11 @@
-;;; gnus-recent-ivy.el --- select recently read Gnus articles with ivy -*- lexical-binding: t -*-
+;;; gnus-mylist-ivy.el --- select mylistly read Gnus articles with ivy -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018 Kevin Brubeck Unhammer
+;; Copyright (C) 2020 Deus Max
 
-;; Author: Kevin Brubeck Unhammer <unhammer@fsfe.org>
-;; Version: 0.2.0
-;; URL: https://github.com/unhammer/gnus-recent
-;; Package-Requires: ((emacs "25.3.2") (gnus-recent "0.2.0") (ivy "0.9.0"))
+;; Author: Deus Max <deusmax@gmx.com>
+;; Version: 0.3.0
+;; URL: https://github.com/deusmax/gnus-mylist
+;; Package-Requires: ((emacs "26.0.0"))
 ;; Keywords: convenience, mail
 
 ;; This file is not part of GNU Emacs.
@@ -24,21 +24,6 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;;; Avoid having to open Gnus and find the right group just to get back to
-;;; that e-mail you were reading.
-
-;;; To use, require and bind whatever keys you prefer to the
-;;; interactive functions:
-;;;
-;;; (require 'gnus-recent-ivy)
-;;; (global-set-key (kbd "<f3>") #'gnus-recent-ivy)
-
-;;; If you prefer `use-package', the above settings would be:
-;;;
-;;; (use-package gnus-recent-ivy
-;;;   :after gnus
-;;;   :bind (("<f3>" . gnus-recent-ivy)))
 
 ;;; Code:
 

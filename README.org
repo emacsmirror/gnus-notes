@@ -38,11 +38,12 @@ This is still work in progress. Not ready yet for prime time. But it safe.
 ** Usage
 
    Start your =gnus= and read few articles or emails. To view the list of the emails
-   and article just read, type the command:
+   and articles just read, type the command:
    : M-x gnus-mylist-helm
 
    The =C-c t= key binding is activated, by default with different actions
    depending on the mode:
-   - in org-mode, it lists all the =gnus:= type links under the current org subtree.
-   - in summary or article mode, i.e. while reading, places a gnus link under the
-     current org heading.
+   - in =org-mode=, it lists all the =gnus:= type links under the current org subtree.
+   - in =summary= or =article-mode=, i.e. while reading, lets you take a quick note
+     using the org-capture system. Perhaps, directly creating a REPLY to-do heading
+     with your notes. 

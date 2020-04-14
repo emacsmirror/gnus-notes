@@ -45,7 +45,7 @@
   "Display levels for extra article info.")
 
 (defvar gnus-mylist-helm-current-data-pa nil
-  "Keeps the recent article for the persistent action Hydra.")
+  "Keeps the article for the persistent action Hydra.")
 
 (defvar gnus-mylist-helm-map
   (let ((map (make-sparse-keymap)))
@@ -182,10 +182,10 @@ argument to `mapcar.'"
   "Initialize the `helm' candidates data."
   (mapcar #'gnus-mylist-helm-candidates-display-default articles-list))
 
-(defun gnus-mylist-helm-forget (_recent)
+(defun gnus-mylist-helm-forget (_artlistitem)
   "Remove Gnus articles from `gnus-mylist--articles-list' using `helm'.
 Helm allows for marked articles or current selection.  See
-function `helm-marked-candidates'.  Argument _recent is not used."
+function `helm-marked-candidates'.  Argument _artlistitem is not used."
   (let* ((cand (helm-marked-candidates))
          (l1-cand (length cand))
          (l1-gral (length gnus-mylist--articles-list)))
@@ -195,11 +195,11 @@ function `helm-marked-candidates'.  Argument _recent is not used."
                   (- l1-gral (length gnus-mylist--articles-list))
                   l1-cand)))
 
-(defun gnus-mylist-helm-forget-pa (recent)
+(defun gnus-mylist-helm-forget-pa (artdata)
   "Forget current or marked articles without quiting `helm'.
 This is the persistent action defined for the helm session.
-Argument RECENT is the article data."
-  (gnus-mylist-helm-forget recent)
+Argument ARTDATA is the article data."
+  (gnus-mylist-helm-forget artdata)
   (helm-delete-current-selection)
   (helm-refresh))
 
@@ -216,17 +216,17 @@ Argument RECENT is the article data."
   ("U" helm-refresh "helm update source")
   ("q" nil "quit" :exit t))
 
-(defun gnus-mylist-helm-hydra-pa (recent)
+(defun gnus-mylist-helm-hydra-pa (artdata)
   "Persistent action activates a Hydra.
-RECENT is the current article in the helm buffer."
-  (setq gnus-mylist-helm-current-data-pa recent)
+ARTDATA is the current article in the helm buffer."
+  (setq gnus-mylist-helm-current-data-pa artdata)
   (hydra-gnus-mylist-helm/body))
 
 (defun gnus-mylist-helm ()
-  "Use `helm' to filter the recently viewed Gnus articles.
+  "Use `helm' to filter the Gnus mylist articles.
 Also a number of possible actions are defined."
   (interactive)
-  (helm :sources (helm-build-sync-source "Gnus recent articles"
+  (helm :sources (helm-build-sync-source "Gnus mylist articles"
                    :keymap gnus-mylist-helm-map
                    :candidates (lambda () (gnus-mylist-helm-candidates gnus-mylist--articles-list))
                    :filtered-candidate-transformer  'gnus-mylist-helm-candidate-transformer

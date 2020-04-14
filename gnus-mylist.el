@@ -81,7 +81,7 @@
 
 (defgroup gnus-mylist nil
   "Article breadcrumbs for gnus."
-  :tag "Gnus Recent"
+  :tag "Gnus Mylist"
   :group 'gnus)
 
 (defcustom gnus-mylist-top-dir "~/.emacs.d/gnus-mylist"
@@ -90,7 +90,7 @@
   :type 'directory)
 
 (defcustom gnus-mylist-file  "~/.emacs.d/gnus-mylist/articles.el"
-  "A file to save the gnus recent articles list data.
+  "A file to save the gnus mylist articles list data.
 Set to nil, for no article tracking between gnus sessions.
 Otherwise, best to keep this file under `gnus-mylist-top-dir'."
   :group 'gnus-mylist
@@ -114,12 +114,12 @@ keep the old format."
 
 (defface gnus-mylist-group-face
   '((t . (:inherit font-lock-type-face :foreground "lightblue")))
-  "Face used for gnus group in the recent articles list."
+  "Face used for gnus group in the mylist articles list."
   :group 'gnus-mylist)
 
 (defface gnus-mylist-date-face
   '((t . (:inherit font-lock-type-face)))
-  "Face used for dates in the recent articles list."
+  "Face used for dates in the mylist articles list."
   :group 'gnus-mylist)
 
 (defvar gnus-mylist--articles-list nil
@@ -211,7 +211,7 @@ available."
   (gnus-mylist-get-email-name sender t))
 
 (defun gnus-mylist--track-article ()
-  "Store this article in the recent article list.
+  "Store this article in the mylist article list.
 For tracking of Backend moves (B-m) see `gnus-mylist--track-move-article'."
   (gnus-mylist-add-to-list (gnus-mylist--get-article-data)))
 
@@ -255,12 +255,12 @@ header passed when the hook is run. For use by
      top))
 
 (defun gnus-mylist-goto-previous (&optional no-retry)
-  "Go to the top of the recent article list.
+  "Go to the top of the mylist article list.
 Unless NO-RETRY, we try going further back if the top of the
 article list is the article we're currently looking at."
   (interactive)
   (if (not gnus-mylist--articles-list)
-      (message "No recent article to show")
+      (message "No mylist article to show")
     (gnus-mylist--action
      (gnus-mylist--shift gnus-mylist--articles-list)
      (lambda (message-id group)
@@ -271,45 +271,45 @@ article list is the article we're currently looking at."
          (gnus-summary-read-group group 1) ; have to show at least one old one
          (gnus-summary-refer-article message-id))))))
 
-(defun gnus-mylist--action (recent func)
-  "Find `message-id' and group arguments from RECENT, call FUNC on them.
-Warn if RECENT can't be deconstructed as expected."
-  (pcase recent
+(defun gnus-mylist--action (msg func)
+  "Find `message-id' and group arguments from MSG, call FUNC on them.
+Warn if MSG can't be deconstructed as expected."
+  (pcase msg
     (`(,_ . (,message-id ,group . ,_))
      (funcall func message-id group))
     (_
-     (gnus-message 3 "Couldn't parse recent message: %S" recent))))
+     (gnus-message 3 "Couldn't parse mylist message: %S" msg))))
 
-(defun gnus-mylist--open-article (recent)
-  "Open RECENT gnus article using `org-gnus'."
-  (org-gnus-follow-link (alist-get 'group recent) (alist-get 'message-id recent)))
+(defun gnus-mylist--open-article (artdata)
+  "Open ARTDATA gnus article using `org-gnus'."
+  (org-gnus-follow-link (alist-get 'group artdata) (alist-get 'message-id artdata)))
 
-(defun gnus-mylist--reply-article-wide-yank (recent)
-  "Make a wide reply and yank to the current RECENT article."
+(defun gnus-mylist--reply-article-wide-yank (artdata)
+  "Make a wide reply and yank to the current ARTDATA article."
   ;; TODO: handle the case the article/email doesn't existany more
-  (gnus-mylist--open-article recent)
+  (gnus-mylist--open-article artdata)
   (call-interactively 'gnus-summary-wide-reply-with-original))
   ;; (when (fboundp 'gnus-mylist-org-message-add-header-orgid)
   ;;   (gnus-mylist-org-message-add-header-orgid)))
 
-(defun gnus-mylist--show-article-thread (recent)
-  "Show the RECENT gnus article thread in a summary buffer."
-  (gnus-mylist--open-article recent)
+(defun gnus-mylist--show-article-thread (artdata)
+  "Show the ARTDATA gnus article thread in a summary buffer."
+  (gnus-mylist--open-article artdata)
   (gnus-warp-to-article)
   (call-interactively 'gnus-summary-refer-thread)
   (goto-char (point-min)))
 
-(defun gnus-mylist--create-org-link (recent)
-  "Return an `org-mode' link to RECENT Gnus article."
+(defun gnus-mylist--create-org-link (artdata)
+  "Return an `org-mode' link to ARTDATA Gnus article."
   (format "[[gnus:%s#%s][Email %s%s]]"
-          (alist-get 'group recent)
-          (gnus-mylist-string-unbracket (alist-get 'message-id recent))
-          (if (gnus-mylist-outgoing-message-p recent)
+          (alist-get 'group artdata)
+          (gnus-mylist-string-unbracket (alist-get 'message-id artdata))
+          (if (gnus-mylist-outgoing-message-p artdata)
               ""
             "from ")
           (bbdb-string-trim
            (replace-regexp-in-string "[][\t]" ""
-                                     (substring (car recent) 0 48)))))
+                                     (substring (car artdata) 0 48)))))
 
 (defun gnus-mylist-split-org-link-gnus (link)
   "Split a gnus article org link into its parts.
@@ -322,14 +322,14 @@ Returns a cons cell as (gnus-group . message-id)."
   "Trim brackets from string."
   (replace-regexp-in-string "^<\\|>$" "" txt))
 
-(defun gnus-mylist-kill-new-org-link (recent)
-  "Add to the `kill-ring' an `org-mode' link to RECENT Gnus article."
-  (kill-new (gnus-mylist--create-org-link recent))
+(defun gnus-mylist-kill-new-org-link (artdata)
+  "Add to the `kill-ring' an `org-mode' link to ARTDATA Gnus article."
+  (kill-new (gnus-mylist--create-org-link artdata))
   (gnus-message 5 "Added org-link to kill-ring"))
 
-(defun gnus-mylist-insert-org-link (recent)
-  "Insert an `org-mode' link to RECENT Gnus article."
-  (insert (gnus-mylist--create-org-link recent)))
+(defun gnus-mylist-insert-org-link (artdata)
+  "Insert an `org-mode' link to ARTDATA Gnus article."
+  (insert (gnus-mylist--create-org-link artdata)))
 
 (defun gnus-mylist-update-message-id (message-id to-group &optional no-crumb-save)
   "Update the Gnus article with MESSAGE-ID in `gnus-mylist--articles-list'.
@@ -341,10 +341,10 @@ Set NO-CRUMB-SAVE non-nil to skip saving a crumb."
       (unless no-crumb-save
         (gnus-mylist--crumb-save article 'upd)))))
 
-(defun gnus-mylist-update (recent to-group)
-  "Update RECENT Gnus article in `gnus-mylist--articles-list'.
+(defun gnus-mylist-update (artdata to-group)
+  "Update ARTDATA Gnus article in `gnus-mylist--articles-list'.
 The Gnus article has moved to group TO-GROUP."
-  (gnus-mylist-update-message-id (alist-get 'message-id recent) to-group))
+  (gnus-mylist-update-message-id (alist-get 'message-id artdata) to-group))
 
 (defun gnus-mylist-forget-message-id (message-id &optional print-msg no-crumb-save)
   "Remove the Gnus article with MESSAGE-ID in `gnus-mylist--articles-list'.
@@ -364,12 +364,12 @@ Set NO-CRUMB-SAVE non-nil to skip saving a crumb file."
         (gnus-message 4 "Removed 1 of 1 from gnus-mylist articles")
         (gnus-message 4 "Removed item: %s from gnus-mylist articles" (car article))))))
 
-(defun gnus-mylist-forget (recent &optional print-msg)
-  "Remove RECENT Gnus article from `gnus-mylist--articles-list'.
+(defun gnus-mylist-forget (artdata &optional print-msg)
+  "Remove ARTDATA Gnus article from `gnus-mylist--articles-list'.
 When PRINT-MSG is non-nil, show a message about it."
-  (gnus-mylist-forget-message-id (alist-get 'message-id recent) print-msg))
+  (gnus-mylist-forget-message-id (alist-get 'message-id artdata) print-msg))
 
-(defun gnus-mylist-forget-all (&rest _recent)
+(defun gnus-mylist-forget-all (&rest _artdata)
   "Clear the gnus-mylist articles list."
   (interactive)
   (when (yes-or-no-p "Action can not be undone. Are you sure? ")
@@ -377,35 +377,23 @@ When PRINT-MSG is non-nil, show a message about it."
     (gnus-mylist--crumbs-clear-all)
     (gnus-message 4 "Cleared all gnus-mylist article entries")))
 
-(defun gnus-mylist-bbdb-display-all (recent)
+(defun gnus-mylist-bbdb-display-all (artdata)
   "Display sender and recipients in BBDB.
 Diplay sender and all recipients in BBDB. Ask to create a BBDB entry, if not in
-BBDB. RECENT is the gnus-mylist data for the selected article."
-  (let ((recipients (alist-get 'recipients recent))
+BBDB. ARTDATA is the gnus-mylist data for the selected article."
+  (let ((recipients (alist-get 'recipients artdata))
         (search-list '(bbdb-search (bbdb-records))))
-    (setq recipients (append (bbdb-split "," (or (alist-get 'sender recent) ""))
+    (setq recipients (append (bbdb-split "," (or (alist-get 'sender artdata) ""))
                              (bbdb-split "," (or (alist-get 'To recipients) ""))
                              (bbdb-split "," (or (alist-get 'Cc recipients) ""))))
     (dolist (r recipients)              ; add new entries to BBDB (ask)
       (bbdb-update-records (list (list (gnus-mylist-get-email-name r t)
                                        (gnus-mylist-get-email r t)))
                            'query t))
-    ;; (bbdb-update-records                ; add new entries to BBDB (ask)
-    ;;  (mapcar (lambda (r)                ; this also works, but sometimes skips remainders
-    ;;            (list (gnus-mylist-get-email-name r t)
-    ;;                  (gnus-mylist-get-email r t)))
-    ;;          recipients)
-    ;;  'query t)
-
     ;; make an array (:mail email1 :mail email2 ...etc)
     (dolist (r recipients search-list)
       (helm-aif (gnus-mylist-get-email r t)
           (nconc search-list (list :mail it))))
-
-    ;; combine:
-    ;; (bbdb-display records (bbdb-search (bbdb-records :mail email1 :mail
-    ;; email2...etc)
-
     (setq search-list (eval search-list))
     (if search-list
         (bbdb-display-records search-list 'multi-line nil)
@@ -414,7 +402,7 @@ BBDB. RECENT is the gnus-mylist data for the selected article."
 ;; FIXME: this function text is only a placeholder.
 ;; Now that gnus-mylist uses the message-id to handle the articles in its'
 ;; article list, there should be no duplicates entries. Still, this function will
-;; help with checking consistency, its just not that critical at the moment.
+;; help with checking consistency, removal is just not that critical at the moment.
 (defun gnus-mylist-alist-find-duplicates ()
   "Find any duplicate entries in `gnus-mylist--articles-list'.
 Duplicates entries are considered those that have the same
@@ -453,24 +441,24 @@ Returns the list of articles in `gnus-mylist--articles-list' that match the list
 message-id provided. MSGIDS-LIST is a list of article message-ids."
   (mapcar 'gnus-mylist-find-message-id msgids-list))
 
-(defun gnus-mylist-find-article (recent)
-  "Search the gnus-mylist articles list for RECENT article.
+(defun gnus-mylist-find-article (artdata)
+  "Search the gnus-mylist articles list for ARTDATA article.
 Returns the first article in `gnus-mylist--articles-list' that
-matches the message-id of the RECENT article argument."
-  (gnus-mylist-find-message-id (alist-get 'message-id recent)))
+matches the message-id of the ARTDATA article argument."
+  (gnus-mylist-find-message-id (alist-get 'message-id artdata)))
 
-(defun gnus-mylist-add-to-list (recent &optional no-crumb-save)
-  "Add the RECENT article data to the articles list.
+(defun gnus-mylist-add-to-list (artdata &optional no-crumb-save)
+  "Add the ARTDATA article data to the articles list.
 Ensures the value for messsage-id is unique among all articles
 stored in `gnus-mylist--articles-list'. When NO-CRUMB-SAVE is
 non-nil, will not save the article data to a crumb file. See
-`gnus-mylist--get-article-data' for the recent article data
+`gnus-mylist--get-article-data' for the artdata article data
 format."
-  (when recent
-    (unless (gnus-mylist-find-message-id (alist-get 'message-id recent))
-      (push recent gnus-mylist--articles-list)
+  (when artdata
+    (unless (gnus-mylist-find-message-id (alist-get 'message-id artdata))
+      (push artdata gnus-mylist--articles-list)
       (unless no-crumb-save
-        (gnus-mylist--crumb-save recent 'new)))))
+        (gnus-mylist--crumb-save artdata 'new)))))
 
 (defun gnus-mylist--crumb-filename (type)
   "Generate a full path filename for an article crumb.
@@ -529,12 +517,12 @@ crumb."
    (alist-get 'message-id (gnus-mylist--read-file-contents crumb-file))
    t t))
 
-(defun gnus-mylist--crumb-save (recent type)
+(defun gnus-mylist--crumb-save (artdata type)
   "Backup single article data until the next save.
 TYPE should be one of 'new, 'upd or 'del.
-RECENT is an alist of the article data."
+ARTDATA is an alist of the article data."
   (with-temp-file (gnus-mylist--crumb-filename type)
-    (prin1 recent (current-buffer))))
+    (prin1 artdata (current-buffer))))
 
 (defun gnus-mylist--read-file-contents (file)
   "Read the contents of a file.
@@ -546,7 +534,7 @@ FILE is the full file path."
     (error "Can not read file '%s'" file)))
 
 (defun gnus-mylist-save ()
-  "Save the gnus recent items to file for persistance."
+  "Save the gnus mylist items to file for persistance."
   (interactive)
   (when gnus-mylist-file
     (if (file-writable-p gnus-mylist-file)
@@ -632,26 +620,26 @@ Note that `mail-header-extract' downcases the property headers."
     (goto-char (point-min))
     (setq gnus-mylist--temp-message-headers (mail-header-extract-no-properties))))
 
-(defun gnus-mylist-outgoing-message-p (recent)
+(defun gnus-mylist-outgoing-message-p (artdata)
   "Check the title of a gnus-mylist article for the outgoing message prefix.
-RECENT is the gnus-mylist article data."
+ARTDATA is the gnus-mylist article data."
   (string= gnus-summary-to-prefix
-           (substring (car recent) 0 (length gnus-summary-to-prefix))))
+           (substring (car artdata) 0 (length gnus-summary-to-prefix))))
 
 ;;
 ;; Redifining gnus stuff
 ;;
 ;; FIXME: should not need to redifine other libraries.
-(defmacro gnus-group-entry (group)
-  "Get the newsrc entry for GROUP.
-Modified not to error when `gnus-newsrc-hashtb' is not assigned."
-  (when (hash-table-p gnus-newsrc-hashtb) `(gethash ,group gnus-newsrc-hashtb)))
+;; (defmacro gnus-group-entry (group)
+;;   "Get the newsrc entry for GROUP.
+;; Modified not to error when `gnus-newsrc-hashtb' is not assigned."
+;;   (when (hash-table-p gnus-newsrc-hashtb) `(gethash ,group gnus-newsrc-hashtb)))
 
 ;;
 ;; starting gnus-mylist
 ;;
 (defun gnus-mylist-start ()
-  "Start Gnus Recent."
+  "Start Gnus Mylist."
   (interactive)
   (gnus-mylist-check-files)
   (gnus-message 5 "Starting gnus-mylist")

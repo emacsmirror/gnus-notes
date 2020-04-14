@@ -41,7 +41,7 @@
 
 (defgroup gnus-mylist-org nil
   "Org integration for gnus-mylist"
-  :tag "Gnus Recent Org"
+  :tag "Gnus Mylist Org"
   :group 'gnus-mylist)
 
 (defcustom gnus-mylist-org-capture-key "e"
@@ -194,12 +194,12 @@ GROUP-SPEC."
   "Tidy up after an outgoing message is sent.
 Add a gnus-link to the org entry as a log-note, then tidy up."
   (when gnus-mylist-org--current-heading-alist
-    (let* ((recent-out (car gnus-mylist--articles-list))
+    (let* ((artdata-out (car gnus-mylist--articles-list))
            (root-marker (alist-get 'org-hd-marker
                                    gnus-mylist-org--current-heading-alist))
-           (org-link (gnus-mylist--create-org-link recent-out)))
+           (org-link (gnus-mylist--create-org-link artdata-out)))
       ;; confirm the last item was an outgoing message
-      (when (gnus-mylist-outgoing-message-p recent-out)
+      (when (gnus-mylist-outgoing-message-p artdata-out)
         (org-with-point-at root-marker
           (org-add-log-setup 'note nil nil nil org-link))
         (gnus-mylist-org-clear-heading-alist)
@@ -340,10 +340,10 @@ value from `gnus-mylist-org-get-heading-alist'."
   ("U" helm-refresh "update data")
   ("q" nil "quit" :exit t))
 
-(defun gnus-mylist-org-helm-hydra-pa (recent)
+(defun gnus-mylist-org-helm-hydra-pa (artdata)
   "Persistent action activates a Hydra.
-RECENT is the current article in the helm buffer."
-  (setq gnus-mylist-helm-current-data-pa recent)
+ARTDATA is the current article in the helm buffer."
+  (setq gnus-mylist-helm-current-data-pa artdata)
   (hydra-gnus-org-helm/body))
 
 ;; keybindings

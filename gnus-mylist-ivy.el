@@ -27,23 +27,23 @@
 
 ;;; Code:
 
-(require 'gnus-recent)
+(require 'gnus-mylist)
 (require 'ivy)
 
-(defun gnus-recent-ivy ()
-  "Select a recent Gnus article to open with `ivy'."
+(defun gnus-mylist-ivy ()
+  "Select a mylist Gnus article to open with `ivy'."
   (interactive)
-  (ivy-read "Recent article: "
-            gnus-recent--articles-list
-            :action #'gnus-recent--open-article
+  (ivy-read "Mylist article: "
+            gnus-mylist--articles-list
+            :action #'gnus-mylist--open-article
             :require-match t))
 
-(ivy-add-actions #'gnus-recent-ivy
-                 '(("l" gnus-recent-insert-org-link "insert org link")
-                   ("c" gnus-recent-kill-new-org-link "copy org link")
-                   ("k" gnus-recent-forget "forget")
-                   ("K" gnus-recent-forget-all "forget all")))
+(ivy-add-actions #'gnus-mylist-ivy
+                 '(("l" gnus-mylist-insert-org-link "insert org link")
+                   ("c" gnus-mylist-kill-new-org-link "copy org link")
+                   ("k" gnus-mylist-forget "forget")
+                   ("K" gnus-mylist-forget-all "forget all")))
 
 
-(provide 'gnus-recent-ivy)
-;;; gnus-recent-ivy.el ends here
+(provide 'gnus-mylist-ivy)
+;;; gnus-mylist-ivy.el ends here

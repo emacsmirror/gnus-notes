@@ -29,8 +29,8 @@
 ;; Gnus-mylist provides an interface with minimum configuration.
 ;; It should "just work".
 ;; This file provides integration with your Org-mode and TODO headings.
-
-;; It is inspired by gnorb and gnus-recent.
+;;
+;; This package is a fork of gnus-recent with additional inspiration by gnorb.
 
 ;;; Code:
 

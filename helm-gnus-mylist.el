@@ -5,14 +5,14 @@
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; Version: 0.3.0
 ;; URL: https://github.com/deusmax/gnus-mylist
-;; Package-Requires: ((emacs "26.0.0"))
+;; Package-Requires: ((emacs "26.0.0") helm)
 ;; Keywords: convenience, mail
 ;;
 ;; This file is not part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -27,11 +27,17 @@
 
 ;; Viewing gnus-mylist with the powerfull helm interface brings powerful
 ;; search features and all the other goodness provided by helm.
-
-;;; To use, require:
-;;;
-;;; (require 'helm-gnus-mylist)
-;;;
+;;
+;; To use, require:
+;;
+;; (require 'helm-gnus-mylist)
+;;
+;; For quick access assign to a global key:
+;;
+;;     (global-set-key (kbd "C-c m") #'helm-gnus-mylist)
+;;
+;; Or add an option to your favorite hydra.
+;;
 
 ;;; Code:
 
@@ -225,6 +231,7 @@ ARTDATA is the current article in the helm buffer."
   (setq gnus-mylist-helm-current-data-pa artdata)
   (hydra-gnus-mylist-helm/body))
 
+;;;###autoload
 (defun helm-gnus-mylist ()
   "Use `helm' to filter the Gnus mylist articles.
 Also a number of possible actions are defined."

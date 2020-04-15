@@ -132,7 +132,8 @@ keep the old format."
   "Decode a gnus-group name.
 Replaces `gnus-group-name-decode' for decoding group names. For
 gnus group name a utf-8-emacs CHARSET is assumed unless provided
-otherwise."
+otherwise.
+Argument STRING is the gnus-group name."
   (decode-coding-string string (or charset 'utf-8-emacs) t))
 
 (defun gnus-mylist-date-format (date)
@@ -199,9 +200,9 @@ display-name."
 
 (defun gnus-mylist--article-display-name (sender recipients)
   "Compose the display name for the article.
-If SENDER matches the `gnus-ignored-from-addresses' then use the first RECIPIENTS
-name. If the To header has no name, then fall back to a newsgroup name, if
-available."
+If SENDER matches the variable `gnus-ignored-from-addresses' then
+use the first RECIPIENTS name. If the To header has no name, then
+fall back to a newsgroup name, if available."
   (when (string-match (gnus-ignored-from-addresses) sender)
     (setq sender (or (car-safe (bbdb-split ","
                                            (or (alist-get 'To recipients)
@@ -312,14 +313,14 @@ Warn if MSG can't be deconstructed as expected."
                                      (substring (car artdata) 0 48)))))
 
 (defun gnus-mylist-split-org-link-gnus (link)
-  "Split a gnus article org link into its parts.
+  "Split a gnus article org LINK into its parts.
 Returns a cons cell as (gnus-group . message-id)."
   (when link
     (let ((s (cl-subseq (split-string (substring-no-properties link 7) "[]#]") 0 2)))
       (cons (car s) (concat "<" (nth 1 s) ">")))))
 
 (defun gnus-mylist-string-unbracket (txt)
-  "Trim brackets from string."
+  "Trim brackets from TXT string."
   (replace-regexp-in-string "^<\\|>$" "" txt))
 
 (defun gnus-mylist-kill-new-org-link (artdata)
@@ -403,18 +404,19 @@ BBDB. ARTDATA is the gnus-mylist data for the selected article."
 ;; Now that gnus-mylist uses the message-id to handle the articles in its'
 ;; article list, there should be no duplicates entries. Still, this function will
 ;; help with checking consistency, removal is just not that critical at the moment.
-(defun gnus-mylist-alist-find-duplicates ()
-  "Find any duplicate entries in `gnus-mylist--articles-list'.
-Duplicates entries are considered those that have the same
-message-id, even if some other property may differ such as the
-group value. It returns a list of message-ids that are found more
-than once."
- (cl-find elem1 gnus-mylist--articles-list))
+;; (defun gnus-mylist-alist-find-duplicates ()
+;;   "Find any duplicate entries in `gnus-mylist--articles-list'.
+;; Duplicates entries are considered those that have the same
+;; message-id, even if some other property may differ such as the
+;; group value. It returns a list of message-ids that are found more
+;; than once."
+;; (cl-find elem1 gnus-mylist--articles-list))
 
 (defun gnus-mylist-filter-prop (prop value &optional test)
   "Return a list of all articles with PROP equal to VALUE.
 Search the `gnus-mylist--articles-list' for all elements with
-property PROP equal to value."
+property PROP equal to value.
+Optional argument TEST should provide a test function. Default test 'equal'."
   (seq-filter #'(lambda (item)
                   (funcall (or test #'equal) value (alist-get prop item)))
               gnus-mylist--articles-list))
@@ -437,8 +439,9 @@ matches the MESSAGE-ID provided. A convinience wrapper for
 
 (defun gnus-mylist-find-message-ids-list (msgids-list)
   "Search gnus-mylist articles for MSGIDS-LIST.
-Returns the list of articles in `gnus-mylist--articles-list' that match the list of
-message-id provided. MSGIDS-LIST is a list of article message-ids."
+Returns the list of articles in `gnus-mylist--articles-list' that
+match the list of message-id provided. MSGIDS-LIST is a list of
+article message-ids."
   (mapcar 'gnus-mylist-find-message-id msgids-list))
 
 (defun gnus-mylist-find-article (artdata)

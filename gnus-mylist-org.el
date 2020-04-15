@@ -58,16 +58,16 @@
   "Internal variable; for temporary holding the current heading info.")
 
 (defvar gnus-mylist-org--last-window-configuration nil
-  "Internal variable; for saving a window configuration")
+  "Internal variable; for saving a window configuration.")
 
-(defhydra gnus-mylist-org-trigger-actions (:color blue :columns 2)
-  "List of actions on org-headings."
-  ("t" gnus-mylist-org-todo "change Todo")
-  ("n" gnus-mylist-org-note-add "add Note")
-  ("a" gnus-mylist-org-associate  "only Associate")
-  ("c" gnus-mylist-org-capture-child "capture to Child")
-  ("s" gnus-mylist-org-capture-sibling "capture to Sibling")
-  ("q" nil "Quit, don't associate"))
+;; (defhydra gnus-mylist-org-trigger-actions (:color blue :columns 2)
+;;   "List of actions on org-headings."
+;;   ("t" gnus-mylist-org-todo "change Todo")
+;;   ("n" gnus-mylist-org-note-add "add Note")
+;;   ("a" gnus-mylist-org-associate  "only Associate")
+;;   ("c" gnus-mylist-org-capture-child "capture to Child")
+;;   ("s" gnus-mylist-org-capture-sibling "capture to Sibling")
+;;   ("q" nil "Quit, don't associate"))
 
 ;; FIXME: here it is hoped the top article-crumb is the top link. Most likely true,
 ;; but not guaranteed. Crumbs may have been deleted. Need to check and confirm, this
@@ -210,8 +210,9 @@ Add a gnus-link to the org entry as a log-note, then tidy up."
 
 ;;; FIXME: use el-patch for this advice
 (defun gnus-mylist-org-outshine-comment-region-advice (beg end &optional arg)
-       "Check the current major mode."
-       (eq major-mode 'gnus-summary-mode))
+  "Check the current major mode.
+BEG, END and optional ARG are the agruments of the function to be advised."
+  (eq major-mode 'gnus-summary-mode))
 
 ;; don't allow outshine-comment-region to proceed for gnus buffers.
 (eval-after-load 'outshine
@@ -268,7 +269,7 @@ select the action on the email articles."
   ("q" gnus-mylist-org-clear-heading-alist "quit"))
 
 (defun gnus-mylist-org-capture-mail ()
-  "Capture a note on an email using the org-mode capture interface.
+  "Capture a note on an email using the `org-mode' capture interface.
 While viewing emails in gnus, in a summary or artile buffer,
 quickly capture an org note capture system. The capture template
 will be preselected with the `gnus-mylist-org-capture-key',

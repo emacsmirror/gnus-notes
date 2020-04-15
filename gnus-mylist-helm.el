@@ -162,9 +162,11 @@ argument to `mapcar.'"
         item))
 
 (defun gnus-mylist-helm-candidates-display-orgid (item)
-  "Display the To, Cc, message-id and org-id fields for each article on separate lines.
-ITEM is the article data in `gnus-mylist--articles-list'. Used as the function
-argument to `mapcar.'"
+  "Rotate the display of article fields.
+The displayed fields are the To, Cc, message-id and org-id for
+each article. Each is shown on a separate line. ITEM is the
+article data in `gnus-mylist--articles-list'. Used as the
+function argument to `mapcar.'"
   (cons (concat (car item)
                 "\n    To: "
                 (alist-get 'To  (alist-get 'recipients item))
@@ -179,7 +181,8 @@ argument to `mapcar.'"
 
 
 (defun gnus-mylist-helm-candidates (articles-list)
-  "Initialize the `helm' candidates data."
+  "Initialize the `helm' candidates data.
+ARTICLES-LIST is the data list of arcticles for helm."
   (mapcar #'gnus-mylist-helm-candidates-display-default articles-list))
 
 (defun gnus-mylist-helm-forget (_artlistitem)
@@ -231,7 +234,7 @@ Also a number of possible actions are defined."
                    :candidates (lambda () (gnus-mylist-helm-candidates gnus-mylist--articles-list))
                    :filtered-candidate-transformer  'gnus-mylist-helm-candidate-transformer
                    :persistent-action 'gnus-mylist-helm-hydra-pa
-                   :persistent-help "view hydra"
+                   :persistent-help "quick actions"
                    :action '(("Open article"               . gnus-mylist--open-article)
                              ("Reply article"              . gnus-mylist--reply-article-wide-yank)
                              ("Show thread"                . gnus-mylist--show-article-thread)

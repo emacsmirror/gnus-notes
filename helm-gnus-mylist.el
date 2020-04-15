@@ -1,4 +1,4 @@
-;;; gnus-mylist-helm.el --- select Gnus mylist articles with helm -*- lexical-binding: t -*-
+;;; helm-gnus-mylist.el --- Gnus mylist articles with helm -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2020 Deus Max
 
@@ -25,12 +25,12 @@
 
 ;;; Commentary:
 
-;; Viewing gnus-mylist with the powerfull helm interface brings great
-;; search and all the other goodness provided by helm.
+;; Viewing gnus-mylist with the powerfull helm interface brings powerful
+;; search features and all the other goodness provided by helm.
 
 ;;; To use, require:
 ;;;
-;;; (require 'gnus-mylist-helm)
+;;; (require 'helm-gnus-mylist)
 ;;;
 
 ;;; Code:
@@ -225,7 +225,7 @@ ARTDATA is the current article in the helm buffer."
   (setq gnus-mylist-helm-current-data-pa artdata)
   (hydra-gnus-mylist-helm/body))
 
-(defun gnus-mylist-helm ()
+(defun helm-gnus-mylist ()
   "Use `helm' to filter the Gnus mylist articles.
 Also a number of possible actions are defined."
   (interactive)
@@ -246,11 +246,11 @@ Also a number of possible actions are defined."
         :buffer "*helm gnus mylist*"
         :truncate-lines t))
 
-(provide 'gnus-mylist-helm)
+(provide 'helm-gnus-mylist)
 
 ;; Local Variables:
 ;; coding: utf-8
 ;; indent-tabs-mode: nil
 ;; End:
 
-;;; gnus-mylist-helm.el ends here
+;;; helm-gnus-mylist.el ends here

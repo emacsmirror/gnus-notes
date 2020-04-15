@@ -39,6 +39,8 @@
 (unless (require 'ol-gnus nil 'noerror)
   (require 'org-gnus))
 
+(defvar org-capture-templates)
+
 (defgroup gnus-mylist-org nil
   "Org integration for gnus-mylist"
   :tag "Gnus Mylist Org"
@@ -101,25 +103,26 @@ Currently, the search is limited to nnimap groups."
         (message-box "No Gnus IMAP messages found under current org heading subtree.")
       ;; separate parts and make unique
       (dolist (link nnimap-links-split)
-        (add-to-list 'msgids-list (cdr link))
-        (add-to-list 'groups-list (car link)))
+        (cl-pushnew (cdr link) msgids-list :test #'equal)
+        (cl-pushnew (car link) groups-list :test #'equal))
       (gnus-mylist-nnir-search (gnus-mylist-nnir-query-spec msgids-list)
                                (gnus-mylist-nnir-group-spec groups-list)))))
 
 (defun gnus-mylist-nnir-group-spec (groups)
-  "Given a GROUPS list format a nnir group-spec list.
-No duplicate group are expected. Each group element in the list should be unique.
-Check, if needed, before calling this function."
+  "Given a GROUPS list format a nnir `group-spec' list.
+No duplicate groups are expected. Each group element in the list should be
+unique. Check, for uniqueness, before calling this function."
   (let (server item group-spec)
     (dolist (gr groups group-spec)
       (setq server (gnus-group-server gr))
-      (setq item (map-elt group-spec server nil #'equal))
-      (map-put group-spec server (list (if (eql 0 (length item))
-                                        (list gr)
-                                        (push gr (car item))))))))
+      ;; (setq item (map-elt group-spec server nil #'equal))
+      (setq item (alist-get server group-spec nil nil #'equal))
+      (setf (map-elt group-spec server) (list (if (eql 0 (length item))
+                                                  (list gr)
+                                                (push gr (car item))))))))
 
 (defun gnus-mylist-nnir-query-spec (query &optional criteria)
-  "Given an IMAP QUERY, format a nnir query-spec list.
+  "Given an IMAP QUERY, format a nnir `query-spec' list.
 Default query CRITERIA on article Message-ID. See
 `nnir-imap-search-arguments' for available IMAP search items for
 use in nnir. Currently, only IMAP search implemented and only for

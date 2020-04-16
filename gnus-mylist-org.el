@@ -12,7 +12,7 @@
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -28,7 +28,7 @@
 ;; Keep track of your seen messages, using a helm interface.
 ;; Gnus-mylist provides an interface with minimum configuration.
 ;; It should "just work".
-;; This file provides integration with your Org-mode and TODO headings.
+;; This file provides some integration with your Org-mode and TODO headings.
 ;;
 ;; This package is a fork of gnus-recent with additional inspiration by gnorb.
 

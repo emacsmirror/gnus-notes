@@ -261,8 +261,8 @@ select the action on the email articles."
     (gnus-message 5 "No gnus links found in current org entry")
     (gnus-mylist-org-clear-heading-alist)))
 
-(defhydra hydra-gnus-mylist-org-handle-mail (:color blue)
-  "Reply to email from current task"
+(defhydra hydra-gnus-mylist-org-handle-mail (:color blue :columns 2)
+  "Reply to email from current heading"
   ("h" gnus-mylist-org-handle-mail-crumbs "View in helm")
   ("t" gnus-mylist-org-handle-mail-top "Reply to top")
   ("v" gnus-mylist-org-handle-mail-view "Search Gnus (imap)")
@@ -351,10 +351,15 @@ ARTDATA is the current article in the helm buffer."
   (hydra-gnus-org-helm/body))
 
 ;; keybindings
-(define-key org-mode-map      (kbd "C-c t") 'gnus-mylist-org-handle-mail)
-(org-defkey org-agenda-keymap (kbd "C-c t") 'gnus-mylist-org-handle-mail)
-(define-key gnus-summary-mode-map (kbd "C-c t") #'gnus-mylist-org-capture-mail)
-(define-key gnus-article-mode-map (kbd "C-c t") #'gnus-mylist-org-capture-mail)
+(defun gnus-mylist-org-define-key (&optional key)
+  "Bind KEY for org integration.
+A convenience function to define a single key sequence for
+integration with org. By default KEY is set to \"C-c t\"."
+  (unless key (setq key "C-c t"))
+  (define-key org-mode-map          (kbd key) #'gnus-mylist-org-handle-mail)
+  (org-defkey org-agenda-keymap     (kbd key) #'gnus-mylist-org-handle-mail)
+  (define-key gnus-summary-mode-map (kbd key) #'gnus-mylist-org-capture-mail)
+  (define-key gnus-article-mode-map (kbd key) #'gnus-mylist-org-capture-mail))
 
 (provide 'gnus-mylist-org)
 ;;; gnus-mylist-org.el ends here

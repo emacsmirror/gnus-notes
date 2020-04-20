@@ -3,10 +3,10 @@
 ;; Copyright (C) 2020 Deus Max
 
 ;; Author: Deus Max <deusmax@gmx.com>
-;; Version: 0.3.0
 ;; URL: https://github.com/deusmax/gnus-mylist
-;; Package-Requires: ((emacs "26.0.0") helm)
-;; Keywords: convenience, mail
+;; Version: 0.3.0
+;; Package-Requires: ((emacs "25.1.0"))
+;; Keywords: convenience, mail, gnus, helm
 ;;
 ;; This file is not part of GNU Emacs.
 
@@ -41,7 +41,7 @@
 
 ;;; Code:
 
-(require 'gnus-mylist)
+(require 'gnus-mylist-lib)
 (require 'helm)
 
 (defvar gnus-mylist-display-extra nil
@@ -59,21 +59,6 @@
     (define-key map (kbd "M-<up>") 'gnus-mylist-helm-display-cycle)
     map)
   "Keymap for a `helm' source.")
-
-(defmacro gnus-mylist-rot1 (ilst)
-  "Cycle left the list elements, return the first item.
-Argument ILST is the list to cycle its items."
-  `(let ((x (pop ,ilst)))
-     (nconc ,ilst (list x))
-     x))
-
-(defmacro gnus-mylist-rot1r (ilst)
-  "Cycle right the list elements, return the last item.
-Argument ILST is the list to cycle its items."
-  `(let ((x (car (last ,ilst))))
-     (nbutlast ,ilst)
-     (push x ,ilst)
-     x))
 
 (defun gnus-mylist-helm-display-cycle ()
   "Cycle the levels of article info to display.

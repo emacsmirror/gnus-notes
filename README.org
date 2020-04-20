@@ -247,6 +247,6 @@
    is deleted from the list. The actual article(s) is still available in gnus and
    can be read back to gnus-mylist.
 
-* Emacs                                                   :noexport:comments:
+* Emacs                                                   :noexport:comment:
 
 #  LocalWords:  README BBDB subtree

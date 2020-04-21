@@ -1,4 +1,4 @@
-;;; helm-gnus-mylist.el --- Gnus mylist articles with helm -*- lexical-binding: t -*-
+;;; gnus-mylist-helm.el --- Gnus mylist articles with helm -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2020 Deus Max
 
@@ -30,24 +30,23 @@
 ;;
 ;; To use, require:
 ;;
-;; (require 'helm-gnus-mylist)
+;; (require 'gnus-mylist-helm)
 ;;
 ;; For quick access assign to a global key:
 ;;
-;;     (global-set-key (kbd "C-c m") #'helm-gnus-mylist)
+;;     (global-set-key (kbd "C-c m") #'gnus-mylist-helm)
 ;;
 ;; Or add an option to your favorite hydra.
 ;;
 
 ;;; Code:
 
-(require 'gnus-mylist-lib)
 (require 'helm)
 
-(defvar gnus-mylist-display-extra nil
+(defvar gnus-mylist-helm-display-extra nil
   "Display extra article info.")
 
-(defvar gnus-mylist-display-levels '(To Cc Msgid Orgid nil)
+(defvar gnus-mylist-helm-display-levels '(To Cc Msgid Orgid nil)
   "Display levels for extra article info.")
 
 (defvar gnus-mylist-helm-current-data-pa nil
@@ -67,8 +66,8 @@ level. Currently only the \"default\", \"To\" and \"Cc\" levels
 are implemented. The function will refresh the `helm' buffer to
 display the new level."
   (interactive)
-  (setq gnus-mylist-display-extra (pop gnus-mylist-display-levels))
-  (nconc gnus-mylist-display-levels (list gnus-mylist-display-extra))
+  (setq gnus-mylist-helm-display-extra (pop gnus-mylist-helm-display-levels))
+  (nconc gnus-mylist-helm-display-levels (list gnus-mylist-helm-display-extra))
   (helm-refresh))
 
 (defun gnus-mylist-helm-display-select ()
@@ -79,9 +78,9 @@ The function will refresh the `helm' buffer to display the new level."
   (interactive)
   (let ((display (read-char "Show level: default (d) | To (t) |  Cc (c): ")))
     (cond
-     ((eq display ?t) (setq gnus-mylist-display-extra 'To))
-     ((eq display ?c) (setq gnus-mylist-display-extra 'Cc))
-     (t (setq gnus-mylist-display-extra nil))))
+     ((eq display ?t) (setq gnus-mylist-helm-display-extra 'To))
+     ((eq display ?c) (setq gnus-mylist-helm-display-extra 'Cc))
+     (t (setq gnus-mylist-helm-display-extra nil))))
   (helm-refresh))
 
 (defun gnus-mylist-helm-candidate-transformer (candidates source)
@@ -91,7 +90,7 @@ display inforrmation. CANDIDATES is the list of filtered data.
 SOURCE is the `helm' source. Both argumente are passed by `helm',
 when the function is called. Also the `helm' multiline feature is
 turned on and off, as needed."
-  (pcase gnus-mylist-display-extra
+  (pcase gnus-mylist-helm-display-extra
     ('To (helm-attrset 'multiline nil source)
          (mapcar #'gnus-mylist-helm-candidates-display-to candidates))
     ('Cc (helm-attrset 'multiline nil source)
@@ -217,7 +216,7 @@ ARTDATA is the current article in the helm buffer."
   (hydra-gnus-mylist-helm/body))
 
 ;;;###autoload
-(defun helm-gnus-mylist ()
+(defun gnus-mylist-helm ()
   "Use `helm' to filter the Gnus mylist articles.
 Also a number of possible actions are defined."
   (interactive)
@@ -238,11 +237,11 @@ Also a number of possible actions are defined."
         :buffer "*helm gnus mylist*"
         :truncate-lines t))
 
-(provide 'helm-gnus-mylist)
+(provide 'gnus-mylist-helm)
 
 ;; Local Variables:
 ;; coding: utf-8
 ;; indent-tabs-mode: nil
 ;; End:
 
-;;; helm-gnus-mylist.el ends here
+;;; gnus-mylist-helm.el ends here

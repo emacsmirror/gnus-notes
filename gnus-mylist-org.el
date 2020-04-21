@@ -34,8 +34,7 @@
 ;;; Code:
 
 (require 's)
-(require 'gnus-mylist-lib)
-(require 'helm-gnus-mylist)
+(require 'gnus-mylist-helm)
 (unless (require 'ol-gnus nil 'noerror)
   (require 'org-gnus))
 

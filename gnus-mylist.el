@@ -1,4 +1,4 @@
-;;; gnus-mylist.el --- User tracking of read Gnus articles with helm  -*- lexical-binding: t -*-
+;;; gnus-mylist.el --- Handy notes of Gnus articles with helm and org  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Deus Max
 
@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 ;;
-;; Gnus-mylist tracks your read Gnus articles to view with helm.
+;; Keep handy notes of your read Gnus articles with helm and org.
 ;;
 ;; This is "my list", so I can keep only the articles that are
 ;; important to me. The rest I can simply remove from mylist,
@@ -33,10 +33,10 @@
 ;; I want it back for whatever reason, no problem. All I have to do
 ;; is view the article in gnus, and it is back on the list !
 ;;
-;; Gnus mylist works in the background silently, keeping track of
-;; the articles read with gnus. When an article is read, it adds it
-;; to mylist. Simply, that's all. It removes deleted articles or
-;; the ones expunged by gnus.
+;; Gnus mylist works in the background silently, keeping track of the
+;; articles read with gnus. When an article is read, it adds a quick
+;; note of it to mylist. Simply, that's all. It removes notes of
+;; deleted articles or the ones expunged by gnus.
 ;;
 ;; Gnus-mylist is similar to the Gnus registry, but whereas the
 ;; registry tries to catch everything, gnus-mylist is light-weight.
@@ -88,7 +88,7 @@
 (require 'gnus-mylist-org)
 
 (defgroup gnus-mylist nil
-  "Article breadcrumbs for gnus."
+  "Keep handy notes of gnus articles."
   :tag "Gnus Mylist"
   :group 'gnus)
 

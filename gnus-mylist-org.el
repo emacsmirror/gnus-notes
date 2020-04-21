@@ -37,8 +37,16 @@
 (require 'gnus-mylist-helm)
 (unless (require 'ol-gnus nil 'noerror)
   (require 'org-gnus))
+(require 'org-capture)
 
-(defvar org-capture-templates)
+(defvar gnus-mylist--articles-list)
+
+(declare-function gnus-mylist--reply-article-wide-yank "gnus-mylist" (artdata))
+(declare-function gnus-mylist--create-org-link "gnus-mylist" (artdata))
+(declare-function gnus-mylist-kill-new-org-link "gnus-mylist" (artdata))
+(declare-function gnus-mylist-split-org-link-gnus "gnus-mylist" (link))
+(declare-function gnus-mylist-outgoing-message-p "gnus-mylist" (artdata))
+(declare-function gnus-mylist-bbdb-display-all "gnus-mylist" (artdata))
 
 (defgroup gnus-mylist-org nil
   "Org integration for gnus-mylist"

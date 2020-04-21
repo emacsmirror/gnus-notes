@@ -43,6 +43,13 @@
 
 (require 'helm)
 
+(defvar gnus-mylist--articles-list)
+
+(declare-function gnus-mylist-decode-utf8 "gnus-mylist" (string &optional charset))
+(declare-function gnus-mylist-forget "gnus-mylist" (artdata &optional print-msg))
+(declare-function gnus-mylist-kill-new-org-link, "gnus-mylist" (artdata))
+(declare-function gnus-mylist-bbdb-display-all "gnus-mylist" (artdata))
+
 (defvar gnus-mylist-helm-display-extra nil
   "Display extra article info.")
 

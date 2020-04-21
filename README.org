@@ -49,17 +49,21 @@
    - =org-gnus= or the newer =ol-gnus=.
    - =helm-lib=
    - =s=
-   - =rfc2047=
 
 ** Installation
 
    This is not an Emacs package, so installation is still a manual process. Place
-   the files in a directory, add it the load path. Load the library or using
+   the files in a directory and add it the load path. Load the library or using
    require:
-   : (require 'helm-gnus-mylist)
-   : (require 'gnus-mylist-org)
+   : (require 'gnus-mylist)
 
-   Now your gnus-mylist is waiting to start tracking your Gnus.
+   Now your gnus-mylist is waiting to start tracking your Gnus. After viewing a few
+   emails or other gnus articles, to start using gnus-mylist, invoke the helm
+   command 'gnus-mylist-helm'. This command is the main entry to gnus-mylist. For
+   quick access, add an option to your favorite hydra or assign to a global key:
+
+   : (global-set-key (kbd "C-c m") #'gnus-mylist-helm)
+
 
    For org integration the user has to define a key sequence. This should be set in
    the user configuration file or run manually. The convenience function
@@ -67,6 +71,9 @@
    : (gnus-mylist-org-define-key)  ; default "C-c t"
    : or
    : (gnus-mylist-org-define-key "C-c X") ; use another key sequence
+
+   Advanced users can look at the definition of the above function, to further
+   fine-tune their customizations.
 
 * Usage
 

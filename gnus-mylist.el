@@ -1,12 +1,12 @@
-;;; gnus-mylist.el --- Use a list of read Gnus articles with helm  -*- lexical-binding: t -*-
+;;; gnus-mylist.el --- Handy notes of Gnus articles with helm and org  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Deus Max
 
 ;; Author: Deus Max <deusmax@gmx.com>
-;; Version: 0.3.0
 ;; URL: https://github.com/deusmax/gnus-mylist
-;; Package-Requires: ((emacs "26.0.0") helm bbdb-mua org)
-;; Keywords: convenience, mail
+;; Version: 0.3.0
+;; Package-Requires: ((emacs "25.1.0") (bbdb "3.1") (helm "3.1") (org "8.3") (s "0.0"))
+;; Keywords: convenience, mail, gnus, helm, org
 
 ;; This file is not part of GNU Emacs.
 
@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 ;;
-;; Gnus-mylist keeps a list of read Gnus articles to view with helm.
+;; Keep handy notes of your read Gnus articles with helm and org.
 ;;
 ;; This is "my list", so I can keep only the articles that are
 ;; important to me. The rest I can simply remove from mylist,
@@ -33,10 +33,10 @@
 ;; I want it back for whatever reason, no problem. All I have to do
 ;; is view the article in gnus, and it is back on the list !
 ;;
-;; Gnus mylist works in the background silently, keeping track of
-;; the articles read with gnus. When an article is read, it adds it
-;; to mylist. Simply, that's all. It removes deleted articles or
-;; the ones expunged by gnus.
+;; Gnus mylist works in the background silently, keeping track of the
+;; articles read with gnus. When an article is read, it adds a quick
+;; note of it to mylist. Simply, that's all. It removes notes of
+;; deleted articles or the ones expunged by gnus.
 ;;
 ;; Gnus-mylist is similar to the Gnus registry, but whereas the
 ;; registry tries to catch everything, gnus-mylist is light-weight.
@@ -51,10 +51,10 @@
 ;; search capabilities and all the other helm goodness.
 ;; Gnus-mylist has been built around helm.
 ;;
-;; To start using gnus-mylist, use the helm command 'helm-gnus-mylist'.
+;; To start using gnus-mylist, use the helm command 'gnus-mylist-helm'.
 ;; For quick access assign to a global key:
 ;;
-;;     (global-set-key (kbd "C-c m") #'helm-gnus-mylist)
+;;     (global-set-key (kbd "C-c m") #'gnus-mylist-helm)
 ;;
 ;; Or add an option to your favorite hydra.
 ;;
@@ -84,25 +84,27 @@
 (require 'helm-lib)
 (require 'bbdb)
 (require 'bbdb-mua)
+(require 'gnus-mylist-helm)
+(require 'gnus-mylist-org)
 
 (defgroup gnus-mylist nil
-  "Article breadcrumbs for gnus."
+  "Keep handy notes of gnus articles."
   :tag "Gnus Mylist"
   :group 'gnus)
 
-(defcustom gnus-mylist-top-dir "~/.emacs.d/gnus-mylist"
+(defcustom gnus-mylist-top-dir (concat user-emacs-directory "gnus-mylist/")
   "The parent directory for gnus-mylist files."
   :group 'gnus-mylist
   :type 'directory)
 
-(defcustom gnus-mylist-file  "~/.emacs.d/gnus-mylist/articles.el"
+(defcustom gnus-mylist-file  (concat gnus-mylist-top-dir "articles.el")
   "A file to save the gnus mylist articles list data.
 Set to nil, for no article tracking between gnus sessions.
 Otherwise, best to keep this file under `gnus-mylist-top-dir'."
   :group 'gnus-mylist
   :type 'file)
 
-(defcustom gnus-mylist-breadcrumbs-dir "~/.emacs.d/gnus-mylist/crumbs"
+(defcustom gnus-mylist-breadcrumbs-dir (concat gnus-mylist-top-dir "crumbs/")
   "A directory for keeping article breadcrumbs in between saves.
 Used only when `gnus-mylist-file' is non-nil."
   :group 'gnus-mylist
@@ -133,6 +135,21 @@ keep the old format."
 
 (defvar gnus-mylist--temp-message-headers nil
   "Internal variable; temporarily placing header data from an outgoing message.")
+
+(defmacro gnus-mylist-rot1 (ilst)
+  "Cycle left the list elements, return the first item.
+Argument ILST is the list to cycle its items."
+  `(let ((x (pop ,ilst)))
+     (nconc ,ilst (list x))
+     x))
+
+(defmacro gnus-mylist-rot1r (ilst)
+  "Cycle right the list elements, return the last item.
+Argument ILST is the list to cycle its items."
+  `(let ((x (car (last ,ilst))))
+     (nbutlast ,ilst)
+     (push x ,ilst)
+     x))
 
 (defun gnus-mylist-decode-utf8 (string &optional charset)
   "Decode a gnus-group name.
@@ -173,10 +190,7 @@ display-name."
 
 (defun gnus-mylist--get-article-data ()
     "Get the article data used for `gnus-mylist' based on `gnus-summary-article-header'."
-    (let* (;; not needed
-           ;; (article-number (gnus-summary-article-number))
-           ;; (article-header (gnus-summary-article-header article-number))
-           (article-header (gnus-summary-article-header))
+    (let* ((article-header (gnus-summary-article-header))
            (date  (gnus-mylist-date-format (mail-header-date article-header)))
            (subject (mail-header-subject article-header))
            (author (mail-header-from article-header))
@@ -293,7 +307,7 @@ Warn if MSG can't be deconstructed as expected."
 
 (defun gnus-mylist--reply-article-wide-yank (artdata)
   "Make a wide reply and yank to the current ARTDATA article."
-  ;; TODO: handle the case the article/email doesn't existany more
+  ;; TODO: handle the case the article/email doesn't exist any more
   (gnus-mylist--open-article artdata)
   (call-interactively 'gnus-summary-wide-reply-with-original))
   ;; (when (fboundp 'gnus-mylist-org-message-add-header-orgid)
@@ -475,7 +489,7 @@ Crumb files are used to store a single article data. They reside
 in the `gnus-mylist-breadcrumbs-dir' directory. TYPE should
 indicate an action type, see `gnus-mylist--crumb-save'."
   (format "%s/cr-%s-%s.el"
-          gnus-mylist-breadcrumbs-dir
+          (directory-file-name gnus-mylist-breadcrumbs-dir)
           (format-time-string "%Y%m%d%H%M%S-%N")
           type))
 
@@ -491,13 +505,13 @@ In case something goes wrong, crumb files are used to restore
 actions."
   (dolist (crumb (directory-files gnus-mylist-breadcrumbs-dir  t "^cr-"))
     (cond
-     ((string-match-p "-new.el$" crumb) (load-crumb-new crumb))
-     ((string-match-p "-upd.el$" crumb) (load-crumb-upd crumb))
-     ((string-match-p "-del.el$" crumb) (load-crumb-del crumb))
+     ((string-match-p "-new.el$" crumb) (gnus-mylist-load-crumb-new crumb))
+     ((string-match-p "-upd.el$" crumb) (gnus-mylist-load-crumb-upd crumb))
+     ((string-match-p "-del.el$" crumb) (gnus-mylist-load-crumb-del crumb))
      (t (message "Warning: found bad crumb: %s" (file-name-nondirectory crumb))))
     (delete-file crumb)))
 
-(defun load-crumb-new (crumb-file)
+(defun gnus-mylist-load-crumb-new (crumb-file)
   "Load the elisp data in CRUMB-FILE to `gnus-mylist--articles-list'.
 CRUMB-FILE is the full file path to a crumb file of type new.
 Pass non-nil for the optional argument to
@@ -505,7 +519,7 @@ Pass non-nil for the optional argument to
 crumb."
   (gnus-mylist-add-to-list (gnus-mylist--read-file-contents crumb-file) t))
 
-(defun load-crumb-upd (crumb-file)
+(defun gnus-mylist-load-crumb-upd (crumb-file)
   "Use the elisp data in CRUMB-FILE to update `gnus-mylist--articles-list'.
 CRUMB-FILE is the full file path to a crumb file of type upd.
 Pass non-nil for the optional argument to
@@ -516,7 +530,7 @@ crumb."
                                    (alist-get 'group article)
                                    t)))
 
-(defun load-crumb-del (crumb-file)
+(defun gnus-mylist-load-crumb-del (crumb-file)
   "Use CRUMB-FILE to delete an item in `gnus-mylist--articles-list'.
 CRUMB-FILE is the full file path to a crumb file of type del.
 Pass non-nil for the optional argument to
@@ -658,7 +672,7 @@ ARTDATA is the gnus-mylist article data."
 (defun gnus-mylist-check-files ()
   "Check for the gnus-mylist directories.
 If the directories don't exist, create them."
-  (dolist (d (list gnus-mylist-breadcrumbs-dir gnus-mylist-top-dir))
+  (dolist (d (list gnus-mylist-top-dir gnus-mylist-breadcrumbs-dir))
     (unless (file-exists-p d)
       (make-directory d t))))
 

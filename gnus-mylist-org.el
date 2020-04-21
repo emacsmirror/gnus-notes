@@ -1,12 +1,12 @@
-;;; gnus-mylist-org.el --- Gnus Mylist -*- lexical-binding: t -*-
+;;; gnus-mylist-org.el --- Some org-mode integration for gnus-mylist  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Deus Max
 
 ;; Author: Deus Max <deusmax@gmx.com>
-;; Version: 0.3.0
 ;; URL: https://github.com/deusmax/gnus-mylist
-;; Package-Requires: ((emacs "26.0.0"))
-;; Keywords: convenience, mail
+;; Version: 0.3.0
+;; Package-Requires: ((emacs "25.1.0"))
+;; Keywords: convenience, mail, gnus helm, org
 
 ;; This file is not part of GNU Emacs.
 
@@ -28,18 +28,25 @@
 ;; Keep track of your seen messages, using a helm interface.
 ;; Gnus-mylist provides an interface with minimum configuration.
 ;; It should "just work".
-;; This file provides some integration with your Org-mode and TODO headings.
+;; This file provides some integration with Org-mode and TODO headings.
 ;;
-;; This package is a fork of gnus-recent with additional inspiration by gnorb.
 
 ;;; Code:
 
 (require 's)
-(require 'gnus-mylist)
+(require 'gnus-mylist-helm)
 (unless (require 'ol-gnus nil 'noerror)
   (require 'org-gnus))
+(require 'org-capture)
 
-(defvar org-capture-templates)
+(defvar gnus-mylist--articles-list)
+
+(declare-function gnus-mylist--reply-article-wide-yank "gnus-mylist" (artdata))
+(declare-function gnus-mylist--create-org-link "gnus-mylist" (artdata))
+(declare-function gnus-mylist-kill-new-org-link "gnus-mylist" (artdata))
+(declare-function gnus-mylist-split-org-link-gnus "gnus-mylist" (link))
+(declare-function gnus-mylist-outgoing-message-p "gnus-mylist" (artdata))
+(declare-function gnus-mylist-bbdb-display-all "gnus-mylist" (artdata))
 
 (defgroup gnus-mylist-org nil
   "Org integration for gnus-mylist"
@@ -105,10 +112,10 @@ Currently, the search is limited to nnimap groups."
       (dolist (link nnimap-links-split)
         (cl-pushnew (cdr link) msgids-list :test #'equal)
         (cl-pushnew (car link) groups-list :test #'equal))
-      (gnus-mylist-nnir-search (gnus-mylist-nnir-query-spec msgids-list)
-                               (gnus-mylist-nnir-group-spec groups-list)))))
+      (gnus-mylist-org-nnir-search (gnus-mylist-org-nnir-query-spec msgids-list)
+                                   (gnus-mylist-org-nnir-group-spec groups-list)))))
 
-(defun gnus-mylist-nnir-group-spec (groups)
+(defun gnus-mylist-org-nnir-group-spec (groups)
   "Given a GROUPS list format a nnir `group-spec' list.
 No duplicate groups are expected. Each group element in the list should be
 unique. Check, for uniqueness, before calling this function."
@@ -121,16 +128,16 @@ unique. Check, for uniqueness, before calling this function."
                                                   (list gr)
                                                 (push gr (car item))))))))
 
-(defun gnus-mylist-nnir-query-spec (query &optional criteria)
+(defun gnus-mylist-org-nnir-query-spec (query &optional criteria)
   "Given an IMAP QUERY, format a nnir `query-spec' list.
 Default query CRITERIA on article Message-ID. See
 `nnir-imap-search-arguments' for available IMAP search items for
 use in nnir. Currently, only IMAP search implemented and only for
 Message-ID."
   (list (cons 'query (string-join query " OR "))
-        (cons 'criteria "HEADER \"Message-ID\"")))
+        (cons 'criteria (or criteria "HEADER \"Message-ID\""))))
 
-(defun gnus-mylist-nnir-search (query-spec group-spec)
+(defun gnus-mylist-org-nnir-search (query-spec group-spec)
   "Convenience wrapper to `gnus-group-read-ephemeral-group'.
 See also function `gnus-group-make-nnir-group' for details on the QUERY-SPEC and
 GROUP-SPEC."
@@ -249,7 +256,7 @@ BEG, END and optional ARG are the agruments of the function to be advised."
 First, this function sets the variable
 `gnus-mylist--current-heading-alist' with the the current heading
 info. Second, it activates a hook to run after sending a message,
-that will take care of the org stuff. Then it call a hydra to
+that will take care of the org stuff. Then it calls a hydra to
 select the action on the email articles."
   (interactive)
   (setq gnus-mylist-org--last-window-configuration (current-window-configuration))

@@ -222,7 +222,7 @@ BEG, END and optional ARG are the agruments of the function to be advised."
   (eq major-mode 'gnus-summary-mode))
 
 ;; don't allow outshine-comment-region to proceed for gnus buffers.
-(eval-after-load 'outshine
+(when (featurep 'outshine)
   (advice-add 'outshine-comment-region
               :before-until
               #'gnus-mylist-org-outshine-comment-region-advice))

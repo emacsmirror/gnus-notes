@@ -100,9 +100,9 @@ Currently, the search is limited to nnimap groups."
   ;; 2. split each link to a (group . msgid) pair
   ;; 3. filter to allow only pairs with an nnimap group (current limitation)
   (let ((nnimap-links-split
-         (map-filter
-          #'(lambda (group msgid)
-              (string-match-p "^nnimap" (gnus-group-server group)))
+         (seq-filter
+          #'(lambda (p)
+              (string-match-p "^nnimap" (gnus-group-server (car p))))
           (mapcar #'gnus-mylist-split-org-link-gnus
                   (alist-get 'org-links-gnus gnus-mylist-org--current-heading-alist))))
         groups-list msgids-list)
@@ -219,6 +219,7 @@ Add a gnus-link to the org entry as a log-note, then tidy up."
 (defun gnus-mylist-org-outshine-comment-region-advice (beg end &optional arg)
   "Check the current major mode.
 BEG, END and optional ARG are the agruments of the function to be advised."
+  (ignore beg eng arg)                  ; keep byte compiler quiet
   (eq major-mode 'gnus-summary-mode))
 
 ;; don't allow outshine-comment-region to proceed for gnus buffers.

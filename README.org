@@ -72,8 +72,8 @@
    : or
    : (gnus-mylist-org-define-key "C-c X") ; use another key sequence
 
-   Advanced users can look at the definition of the above function, to further
-   fine-tune their customizations.
+   Advanced users can look at the definition of the above function, to fine-tune
+   their needs.
 
 * Usage
 
@@ -82,7 +82,7 @@
   the command =gnus-mylist-helm=.
 
   For quick access assign to a global key, such as:
-  : (global-set-key (kbd "C-c m") #'helm-gnus-mylist)
+  : (global-set-key (kbd "C-c m") #'gnus-mylist-helm)
 
   Or add it as an option to your favorite hydra.
 

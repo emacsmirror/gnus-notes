@@ -73,7 +73,7 @@
    : (gnus-mylist-org-define-key "C-c X") ; use another key sequence
 
    Advanced users can look at the definition of the above function, to further
-   fine-tune their customizations.
+   fine-tune their needs.
 
 * Usage
 

@@ -219,7 +219,7 @@ Add a gnus-link to the org entry as a log-note, then tidy up."
 (defun gnus-mylist-org-outshine-comment-region-advice (beg end &optional arg)
   "Check the current major mode.
 BEG, END and optional ARG are the agruments of the function to be advised."
-  (ignore beg eng arg)                  ; keep byte compiler quiet
+  (ignore beg end arg)                  ; keep byte compiler quiet
   (eq major-mode 'gnus-summary-mode))
 
 ;; don't allow outshine-comment-region to proceed for gnus buffers.

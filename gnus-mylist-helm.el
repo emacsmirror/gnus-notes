@@ -30,7 +30,7 @@
 ;;
 ;; To use, require:
 ;;
-;; (require 'gnus-mylist-helm)
+;; (require 'gnus-mylist)
 ;;
 ;; For quick access assign to a global key:
 ;;

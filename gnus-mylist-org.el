@@ -67,15 +67,6 @@
 (defvar gnus-mylist-org--last-window-configuration nil
   "Internal variable; for saving a window configuration.")
 
-;; (defhydra gnus-mylist-org-trigger-actions (:color blue :columns 2)
-;;   "List of actions on org-headings."
-;;   ("t" gnus-mylist-org-todo "change Todo")
-;;   ("n" gnus-mylist-org-note-add "add Note")
-;;   ("a" gnus-mylist-org-associate  "only Associate")
-;;   ("c" gnus-mylist-org-capture-child "capture to Child")
-;;   ("s" gnus-mylist-org-capture-sibling "capture to Sibling")
-;;   ("q" nil "Quit, don't associate"))
-
 ;; FIXME: here it is hoped the top article-crumb is the top link. Most likely true,
 ;; but not guaranteed. Crumbs may have been deleted. Need to check and confirm, this
 ;; to be the case.
@@ -227,9 +218,6 @@ BEG, END and optional ARG are the agruments of the function to be advised."
   (advice-add 'outshine-comment-region
               :before-until
               #'gnus-mylist-org-outshine-comment-region-advice))
-
-;; if needed during development.
-;; (advice-remove 'outshine-comment-region #'gnus-mylist-org-outshine-comment-region-advice)
 
 (defun gnus-mylist-org-handle-mail-crumbs ()
   "Show available gnus messages from the current org headline in helm."

@@ -54,9 +54,13 @@
 ;; To start using gnus-mylist, use the helm command 'gnus-mylist-helm'.
 ;; For quick access assign to a global key:
 ;;
+;;     (require 'gnus-mylist)
 ;;     (global-set-key (kbd "C-c m") #'gnus-mylist-helm)
 ;;
 ;; Or add an option to your favorite hydra.
+;;
+;; For org-mode integration, activate the key bindings:
+;;     (gnus-mylist-org-define-key)       ; default "C-c t"
 ;;
 ;; Additional integration provided, or planned, with:
 ;; - org-mode, with gnus-mylist-org
@@ -420,18 +424,6 @@ BBDB. ARTDATA is the gnus-mylist data for the selected article."
         (bbdb-display-records search-list 'multi-line nil)
       (gnus-message 4 "No matching BBDB records found"))))
 
-;; FIXME: this function text is only a placeholder.
-;; Now that gnus-mylist uses the message-id to handle the articles in its'
-;; article list, there should be no duplicates entries. Still, this function will
-;; help with checking consistency, removal is just not that critical at the moment.
-;; (defun gnus-mylist-alist-find-duplicates ()
-;;   "Find any duplicate entries in `gnus-mylist--articles-list'.
-;; Duplicates entries are considered those that have the same
-;; message-id, even if some other property may differ such as the
-;; group value. It returns a list of message-ids that are found more
-;; than once."
-;; (cl-find elem1 gnus-mylist--articles-list))
-
 (defun gnus-mylist-filter-prop (prop value &optional test)
   "Return a list of all articles with PROP equal to VALUE.
 Search the `gnus-mylist--articles-list' for all elements with
@@ -648,15 +640,6 @@ Note that `mail-header-extract' downcases the property headers."
 ARTDATA is the gnus-mylist article data."
   (string= gnus-summary-to-prefix
            (substring (car artdata) 0 (length gnus-summary-to-prefix))))
-
-;;
-;; Redifining gnus stuff
-;;
-;; FIXME: should not need to redifine other libraries.
-;; (defmacro gnus-group-entry (group)
-;;   "Get the newsrc entry for GROUP.
-;; Modified not to error when `gnus-newsrc-hashtb' is not assigned."
-;;   (when (hash-table-p gnus-newsrc-hashtb) `(gethash ,group gnus-newsrc-hashtb)))
 
 ;;
 ;; starting gnus-mylist

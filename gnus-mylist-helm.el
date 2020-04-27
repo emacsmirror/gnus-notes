@@ -5,9 +5,9 @@
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; URL: https://github.com/deusmax/gnus-mylist
 ;; Version: 0.3.0
-;; Package-Requires: ((emacs "25.1.0"))
-;; Keywords: convenience, mail, gnus, helm
-;;
+;; Package-Requires: ((emacs "25.1.0") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
+;; Keywords: convenience, mail, gnus, helm, org
+
 ;; This file is not part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -25,30 +25,79 @@
 
 ;;; Commentary:
 
+;; Keep handy notes of your read Gnus articles with helm and org.
+;;
 ;; Viewing gnus-mylist with the powerfull helm interface brings powerful
 ;; search features and all the other goodness provided by helm.
+;; This file provides the helm interface for viewing gnus-mylist.
 ;;
-;; To use, require:
+;; This is "my list", so I can keep only the articles that are
+;; important to me. The rest I can simply remove from mylist,
+;; without affecting Gnus. If an article is removed, by accident or
+;; I want it back for whatever reason, no problem. All I have to do
+;; is view the article in gnus, and it is back on the list !
 ;;
-;; (require 'gnus-mylist)
+;; Gnus mylist works in the background silently, keeping track of the
+;; articles read with gnus. When an article is read, it adds a quick
+;; note of it to mylist. Simply, that's all. It removes notes of
+;; deleted articles or the ones expunged by gnus.
 ;;
-;; For quick access assign to a global key:
+;; Gnus-mylist is similar to the Gnus registry, but whereas the
+;; registry tries to catch everything, gnus-mylist is light-weight.
+;; It doesn't try to keep everything. Only the articles "I have"
+;; read. Its job is much simpler. "My read" articles are the only
+;; really important "to me" articles, isn't is so ?
+;;
+;; This simplicity allows the user to add and remove articles to
+;; gnus-mylist, stress free.
+;;
+;; Viewing gnus-mylist with the powerful helm interface brings great
+;; search capabilities and all the other helm goodness.
+;; Gnus-mylist has been built around helm.
+;;
+;; Additional integration provided, or planned, with:
+;; - org-mode, built-in
+;; - BBDB built-in with gnus (gnus-insinuate 'bbdb 'message)
+;; - EBDB (todo)
+;;
+;; Gnus is not limited to email, that is why gnus uses the term "articles".
+;; Gnus-mylist follows the Gnus general philosophy, it also uses the term
+;; "articles". Most testing has been done on email (and IMAP in particular) and RSS.
+;;
+;; This package is a fork of gnus-recent with additional inspiration by gnorb.
+;;
+;;; To use, require:
+;;
+;; (require 'gnus-mylist-helm)
+;; (gnus-mylist-init)
+;;
+;; For quick access assign the helm starting-point to a global key:
 ;;
 ;;     (global-set-key (kbd "C-c m") #'gnus-mylist-helm)
 ;;
 ;; Or add an option to your favorite hydra.
+;; To start using gnus-mylist, use the helm command 'gnus-mylist-helm'.
+;; For quick access assign to a global key:
+;;
+;;     (require 'gnus-mylist-helm)
+;;     (gnus-mylist-init)
+;;     (global-set-key (kbd "C-c m") #'gnus-mylist-helm)
+;;
+;; Or add an option to your favorite hydra.
+;;
+;; For org-mode integration, activate the key bindings:
+;;     (gnus-mylist-org-define-key)       ; default "C-c t"
 ;;
 
 ;;; Code:
 
+(require 'gnus)
 (require 'helm)
-
-(defvar gnus-mylist--articles-list)
-
-(declare-function gnus-mylist-decode-utf8 "gnus-mylist" (string &optional charset))
-(declare-function gnus-mylist-forget "gnus-mylist" (artdata &optional print-msg))
-(declare-function gnus-mylist-kill-new-org-link, "gnus-mylist" (artdata))
-(declare-function gnus-mylist-bbdb-display-all "gnus-mylist" (artdata))
+(require 'hydra)
+(require 'async)                        ; required by helm
+(require 'lv)                           ; required by hydra
+(require 'gnus-mylist)
+(require 'gnus-mylist-org)
 
 (defvar gnus-mylist-helm-display-extra nil
   "Display extra article info.")
@@ -245,10 +294,9 @@ Also a number of possible actions are defined."
         :truncate-lines t))
 
 (provide 'gnus-mylist-helm)
+;;; gnus-mylist-helm.el ends here
 
 ;; Local Variables:
 ;; coding: utf-8
 ;; indent-tabs-mode: nil
 ;; End:
-
-;;; gnus-mylist-helm.el ends here

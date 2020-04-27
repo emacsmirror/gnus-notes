@@ -5,7 +5,7 @@
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; URL: https://github.com/deusmax/gnus-mylist
 ;; Version: 0.3.0
-;; Package-Requires: ((emacs "25.1.0"))
+;; Package-Requires: ((emacs "25.1.0") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
 ;; Keywords: convenience, mail, gnus helm, org
 
 ;; This file is not part of GNU Emacs.
@@ -34,19 +34,22 @@
 ;;; Code:
 
 (require 's)
-(require 'gnus-mylist-helm)
+(require 'gnus)
+(require 'helm)
+(require 'hydra)
+(require 'bbdb-mua)
 (unless (require 'ol-gnus nil 'noerror)
   (require 'org-gnus))
+(require 'org-agenda)
 (require 'org-capture)
+(require 'async)                        ; required by helm
+(require 'lv)                           ; required by hydra
+(require 'gnus-mylist)
 
-(defvar gnus-mylist--articles-list)
+(defvar gnus-mylist-helm-map)
+(defvar gnus-mylist-helm-current-data-pa)
 
-(declare-function gnus-mylist--reply-article-wide-yank "gnus-mylist" (artdata))
-(declare-function gnus-mylist--create-org-link "gnus-mylist" (artdata))
-(declare-function gnus-mylist-kill-new-org-link "gnus-mylist" (artdata))
-(declare-function gnus-mylist-split-org-link-gnus "gnus-mylist" (link))
-(declare-function gnus-mylist-outgoing-message-p "gnus-mylist" (artdata))
-(declare-function gnus-mylist-bbdb-display-all "gnus-mylist" (artdata))
+(declare-function gnus-mylist-helm-candidates "gnus-mylist-helm" (articles-list))
 
 (defgroup gnus-mylist-org nil
   "Org integration for gnus-mylist"
@@ -350,7 +353,7 @@ ARTDATA is the current article in the helm buffer."
 (defun gnus-mylist-org-define-key (&optional key)
   "Bind KEY for org integration.
 A convenience function to define a single key sequence for
-integration with org. By default KEY is set to \"C-c t\"."
+integration with org. By default KEY is set to \"<Control-c t>\"."
   (unless key (setq key "C-c t"))
   (define-key org-mode-map          (kbd key) #'gnus-mylist-org-handle-mail)
   (org-defkey org-agenda-keymap     (kbd key) #'gnus-mylist-org-handle-mail)
@@ -359,3 +362,8 @@ integration with org. By default KEY is set to \"C-c t\"."
 
 (provide 'gnus-mylist-org)
 ;;; gnus-mylist-org.el ends here
+
+;; Local Variables:
+;; coding: utf-8
+;; indent-tabs-mode: nil
+;; End:

@@ -5,7 +5,7 @@
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; URL: https://github.com/deusmax/gnus-mylist
 ;; Version: 0.3.0
-;; Package-Requires: ((emacs "25.1.0") (bbdb "3.1") (helm "3.1") (org "8.3") (s "0.0"))
+;; Package-Requires: ((emacs "25.1.0") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
 ;; Keywords: convenience, mail, gnus, helm, org
 
 ;; This file is not part of GNU Emacs.
@@ -27,55 +27,32 @@
 ;;
 ;; Keep handy notes of your read Gnus articles with helm and org.
 ;;
-;; This is "my list", so I can keep only the articles that are
-;; important to me. The rest I can simply remove from mylist,
-;; without affecting Gnus. If an article is removed, by accident or
-;; I want it back for whatever reason, no problem. All I have to do
-;; is view the article in gnus, and it is back on the list !
+;; This file provides the core setup and data needs of gnus-mylist.
 ;;
-;; Gnus mylist works in the background silently, keeping track of the
-;; articles read with gnus. When an article is read, it adds a quick
-;; note of it to mylist. Simply, that's all. It removes notes of
-;; deleted articles or the ones expunged by gnus.
 ;;
-;; Gnus-mylist is similar to the Gnus registry, but whereas the
-;; registry tries to catch everything, gnus-mylist is light-weight.
-;; It doesn't try to keep everything. Only the articles "I have"
-;; read. Its job is much simpler. "My read" articles are the only
-;; really important "to me" articles, isn't is so ?
+;; This package is a fork of gnus-recent with additional inspiration by gnorb.
 ;;
-;; This simplicity allows the user to add and remove articles to
-;; gnus-mylist, stress free.
+;;; To use, require:
 ;;
-;; Viewing gnus-mylist with the powerful helm interface brings great
-;; search capabilities and all the other helm goodness.
-;; Gnus-mylist has been built around helm.
+;; (require 'gnus-mylist-helm)
+;; (gnus-mylist-init)
 ;;
+;; For quick access assign the helm starting-point to a global key:
+;;
+;;     (global-set-key (kbd "C-c m") #'gnus-mylist-helm)
+;;
+;; Or add an option to your favorite hydra.
 ;; To start using gnus-mylist, use the helm command 'gnus-mylist-helm'.
 ;; For quick access assign to a global key:
 ;;
-;;     (require 'gnus-mylist)
+;;     (require 'gnus-mylist-helm)
+;;     (gnus-mylist-init)
 ;;     (global-set-key (kbd "C-c m") #'gnus-mylist-helm)
 ;;
 ;; Or add an option to your favorite hydra.
 ;;
 ;; For org-mode integration, activate the key bindings:
 ;;     (gnus-mylist-org-define-key)       ; default "C-c t"
-;;
-;; Additional integration provided, or planned, with:
-;; - org-mode, with gnus-mylist-org
-;; - BBDB built-in with gnus (gnus-insinuate)
-;; - EBDB (todo)
-;;
-;; Gnus is not limited to email, that is why gnus uses the term "articles".
-;; Gnus-mylist follows the Gnus general philosophy, it also uses the term
-;; "articles". Most testing has been done on email (and IMAP in particular) and RSS.
-;;
-;; This package is a fork of gnus-recent with additional inspiration by gnorb.
-
-;;; To use, require:
-;;
-;; (require 'gnus-mylist)
 ;;
 
 ;;; Code:
@@ -86,10 +63,10 @@
   (require 'org-gnus))
 (require 'rfc2047)
 (require 'helm-lib)
-(require 'bbdb)
 (require 'bbdb-mua)
-(require 'gnus-mylist-helm)
-(require 'gnus-mylist-org)
+
+(declare-function org-strip-quotes "ext:org-macs" (string))
+(declare-function org-gnus-follow-link (if (featurep 'ol-gnus) "ext:ol-gnus" "ext:org-gnus") (&optional group article))
 
 (defgroup gnus-mylist nil
   "Keep handy notes of gnus articles."
@@ -644,7 +621,7 @@ ARTDATA is the gnus-mylist article data."
 ;;
 ;; starting gnus-mylist
 ;;
-(defun gnus-mylist-start ()
+(defun gnus-mylist-init ()
   "Start Gnus Mylist."
   (interactive)
   (gnus-mylist-check-files)
@@ -692,8 +669,11 @@ If the directories don't exist, create them."
   (remove-hook 'gnus-save-newsrc-hook 'gnus-mylist-save)
   (remove-hook 'kill-emacs-hook 'gnus-mylist-save))
 
-;; start gnus-mylist session
-(gnus-mylist-start)
-
 (provide 'gnus-mylist)
 ;;; gnus-mylist.el ends here
+
+;; Local Variables:
+;; coding: utf-8
+;; indent-tabs-mode: nil
+;; End:
+

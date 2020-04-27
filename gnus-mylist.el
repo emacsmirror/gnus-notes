@@ -3,10 +3,10 @@
 ;; Copyright (C) 2020 Deus Max
 
 ;; Author: Deus Max <deusmax@gmx.com>
-;; URL: https://github.com/deusmax/gnus-mylist
+;; URL: https://github.com/deusmax/gnus-mylist-helm
 ;; Version: 0.3.0
-;; Package-Requires: ((emacs "25.1.0") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
-;; Keywords: convenience, mail, gnus, helm, org
+;; Package-Requires: ((emacs "25.1"))
+;; Keywords: convenience, mail, gnus, helm, org, hydra
 
 ;; This file is not part of GNU Emacs.
 
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -290,7 +290,7 @@ Warn if MSG can't be deconstructed as expected."
   "Make a wide reply and yank to the current ARTDATA article."
   ;; TODO: handle the case the article/email doesn't exist any more
   (gnus-mylist--open-article artdata)
-  (call-interactively 'gnus-summary-wide-reply-with-original))
+  (call-interactively #'gnus-summary-wide-reply-with-original))
   ;; (when (fboundp 'gnus-mylist-org-message-add-header-orgid)
   ;;   (gnus-mylist-org-message-add-header-orgid)))
 
@@ -298,7 +298,7 @@ Warn if MSG can't be deconstructed as expected."
   "Show the ARTDATA gnus article thread in a summary buffer."
   (gnus-mylist--open-article artdata)
   (gnus-warp-to-article)
-  (call-interactively 'gnus-summary-refer-thread)
+  (call-interactively #'gnus-summary-refer-thread)
   (goto-char (point-min)))
 
 (defun gnus-mylist--create-org-link (artdata)
@@ -406,8 +406,8 @@ BBDB. ARTDATA is the gnus-mylist data for the selected article."
 Search the `gnus-mylist--articles-list' for all elements with
 property PROP equal to value.
 Optional argument TEST should provide a test function. Default test 'equal'."
-  (seq-filter #'(lambda (item)
-                  (funcall (or test #'equal) value (alist-get prop item)))
+  (seq-filter (lambda (item)
+                (funcall (or test #'equal) value (alist-get prop item)))
               gnus-mylist--articles-list))
 
 (defun gnus-mylist-find-prop (prop value)
@@ -415,9 +415,9 @@ Optional argument TEST should provide a test function. Default test 'equal'."
 Find in `gnus-mylist--articles-list' if there is a property PROP equal to VALUE.
 Returns the first article data when a match is found. It does not try
 to find any more matches."
-  (seq-find #'(lambda (item)
-            (equal value (alist-get prop item)))
-        gnus-mylist--articles-list))
+  (seq-find (lambda (item)
+              (equal value (alist-get prop item)))
+            gnus-mylist--articles-list))
 
 (defun gnus-mylist-find-message-id (message-id)
   "Search the gnus-mylist articles data by MESSAGE-ID.
@@ -431,7 +431,7 @@ matches the MESSAGE-ID provided. A convinience wrapper for
 Returns the list of articles in `gnus-mylist--articles-list' that
 match the list of message-id provided. MSGIDS-LIST is a list of
 article message-ids."
-  (mapcar 'gnus-mylist-find-message-id msgids-list))
+  (mapcar #'gnus-mylist-find-message-id msgids-list))
 
 (defun gnus-mylist-find-article (artdata)
   "Search the gnus-mylist articles list for ARTDATA article.
@@ -641,33 +641,33 @@ If the directories don't exist, create them."
   (interactive)
   ;; Activate the hooks  (should be named -functions)
   ;; Note: except for the 1st, the other hooks run using run-hook-with-args
-  (add-hook 'gnus-article-prepare-hook        'gnus-mylist--track-article)
-  (add-hook 'gnus-summary-article-move-hook   'gnus-mylist--track-move-article)
-  (add-hook 'gnus-summary-article-delete-hook 'gnus-mylist--track-delete-article)
-  (add-hook 'gnus-summary-article-expire-hook 'gnus-mylist--track-expire-article)
+  (add-hook 'gnus-article-prepare-hook        #'gnus-mylist--track-article)
+  (add-hook 'gnus-summary-article-move-hook   #'gnus-mylist--track-move-article)
+  (add-hook 'gnus-summary-article-delete-hook #'gnus-mylist--track-delete-article)
+  (add-hook 'gnus-summary-article-expire-hook #'gnus-mylist--track-expire-article)
   ;; hooks for new messages
-  (add-hook 'message-header-hook 'gnus-mylist--get-message-data)
+  (add-hook 'message-header-hook #'gnus-mylist--get-message-data)
   ;; TODO: replace this hook call with an async call from gnus-mylist--get-message-data.
   ;;       Optimize later.
-  (add-hook 'message-sent-hook 'gnus-mylist--track-message)
+  (add-hook 'message-sent-hook #'gnus-mylist--track-message)
 
   ;; hooks related to saving the data
-  (add-hook 'gnus-save-newsrc-hook 'gnus-mylist-save)
-  (add-hook 'kill-emacs-hook 'gnus-mylist-save))
+  (add-hook 'gnus-save-newsrc-hook #'gnus-mylist-save)
+  (add-hook 'kill-emacs-hook #'gnus-mylist-save))
 
 (defun gnus-mylist-remove-hooks ()
   "Remove the gnus-mylist hooks."
   (interactive)
-  (remove-hook 'gnus-article-prepare-hook        'gnus-mylist--track-article)
-  (remove-hook 'gnus-summary-article-move-hook   'gnus-mylist--track-move-article)
-  (remove-hook 'gnus-summary-article-delete-hook 'gnus-mylist--track-delete-article)
-  (remove-hook 'gnus-summary-article-expire-hook 'gnus-mylist--track-expire-article)
+  (remove-hook 'gnus-article-prepare-hook        #'gnus-mylist--track-article)
+  (remove-hook 'gnus-summary-article-move-hook   #'gnus-mylist--track-move-article)
+  (remove-hook 'gnus-summary-article-delete-hook #'gnus-mylist--track-delete-article)
+  (remove-hook 'gnus-summary-article-expire-hook #'gnus-mylist--track-expire-article)
   ;; hooks for new messages
-  (remove-hook 'message-header-hook 'gnus-mylist--get-message-data)
-  (remove-hook 'message-sent-hook 'gnus-mylist--track-message)
+  (remove-hook 'message-header-hook #'gnus-mylist--get-message-data)
+  (remove-hook 'message-sent-hook #'gnus-mylist--track-message)
   ;; hooks related to saving the data
-  (remove-hook 'gnus-save-newsrc-hook 'gnus-mylist-save)
-  (remove-hook 'kill-emacs-hook 'gnus-mylist-save))
+  (remove-hook 'gnus-save-newsrc-hook #'gnus-mylist-save)
+  (remove-hook 'kill-emacs-hook #'gnus-mylist-save))
 
 (provide 'gnus-mylist)
 ;;; gnus-mylist.el ends here

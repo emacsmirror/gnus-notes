@@ -3,10 +3,10 @@
 ;; Copyright (C) 2020 Deus Max
 
 ;; Author: Deus Max <deusmax@gmx.com>
-;; URL: https://github.com/deusmax/gnus-mylist
+;; URL: https://github.com/deusmax/gnus-mylist-helm
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "25.1.0") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
-;; Keywords: convenience, mail, gnus, helm, org
+;; Keywords: convenience, mail, gnus, helm, org, hydra
 
 ;; This file is not part of GNU Emacs.
 
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

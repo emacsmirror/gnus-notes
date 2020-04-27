@@ -3,10 +3,10 @@
 ;; Copyright (C) 2020 Deus Max
 
 ;; Author: Deus Max <deusmax@gmx.com>
-;; URL: https://github.com/deusmax/gnus-mylist
+;; URL: https://github.com/deusmax/gnus-mylist-helm
 ;; Version: 0.3.0
-;; Package-Requires: ((emacs "25.1.0") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
-;; Keywords: convenience, mail, gnus helm, org
+;; Package-Requires: ((emacs "25.1"))
+;; Keywords: convenience, mail, gnus helm, org, hydra
 
 ;; This file is not part of GNU Emacs.
 
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -95,8 +95,8 @@ Currently, the search is limited to nnimap groups."
   ;; 3. filter to allow only pairs with an nnimap group (current limitation)
   (let ((nnimap-links-split
          (seq-filter
-          #'(lambda (p)
-              (string-match-p "^nnimap" (gnus-group-server (car p))))
+          (lambda (p)
+            (string-match-p "^nnimap" (gnus-group-server (car p))))
           (mapcar #'gnus-mylist-split-org-link-gnus
                   (alist-get 'org-links-gnus gnus-mylist-org--current-heading-alist))))
         groups-list msgids-list)
@@ -158,8 +158,8 @@ GROUP-SPEC."
                      (buffer-substring-no-properties (point-at-bol 2)
                                                      (org-end-of-subtree t))))
            (org-links-gnus (gnus-mylist-org-search-string-org-links-gnus hd-txt))
-           (articles-msgid (mapcar 'cdr
-                                   (mapcar 'gnus-mylist-split-org-link-gnus
+           (articles-msgid (mapcar #'cdr
+                                   (mapcar #'gnus-mylist-split-org-link-gnus
                                            org-links-gnus)))
            (articles (gnus-mylist-org-filter-message-ids-list articles-msgid)))
       (list
@@ -184,13 +184,13 @@ GROUP-SPEC."
 
 (defun gnus-mylist-org-message-add-hooks ()
   "Add the hooks for an outgoing message."
-  (add-hook 'message-sent-hook 'gnus-mylist-org-message-sent-actions t)
-  (add-hook 'message-cancel-hook 'gnus-mylist-org-message-remove-hooks))
+  (add-hook 'message-sent-hook #'gnus-mylist-org-message-sent-actions t)
+  (add-hook 'message-cancel-hook #'gnus-mylist-org-message-remove-hooks))
 
 (defun gnus-mylist-org-message-remove-hooks ()
   "Remove the hooks set by `gnus-mylist-org-message-add-hooks'."
-  (remove-hook 'message-sent-hook 'gnus-mylist-org-message-sent-actions)
-  (remove-hook 'message-cancel-hook 'gnus-mylist-org-message-remove-hooks))
+  (remove-hook 'message-sent-hook #'gnus-mylist-org-message-sent-actions)
+  (remove-hook 'message-cancel-hook #'gnus-mylist-org-message-remove-hooks))
 
 ;; FIXME: Exploratory code, need to handle cancelling and aborting.
 ;; FIXME: Message-send (C-c C-s) results in empty group field.
@@ -295,14 +295,14 @@ properties. By default, text properties are removed."
 (defun gnus-mylist-org-search-string-org-links-gnus (txt)
   "Search text TXT for org-links, having protocol \"gnus:\".
 Returns a list of org-links, that point to gnus articles."
-  (mapcar 'car
+  (mapcar #'car
           (s-match-strings-all "\\[\\[gnus:.+\\]\\]"
                                (gnus-string-remove-all-properties txt))))
 
 (defun gnus-mylist-org-get-orgids (txt)
   "Find the org-ids in org entry text TXT."
   (mapcar (lambda (x) (cadr (split-string x ":" t " +")))
-          (mapcar 'car
+          (mapcar #'car
                   (s-match-strings-all "^ +:ID:.+" txt))))
 
 (defun gnus-mylist-org-filter-message-ids-list (id-list)
@@ -310,7 +310,7 @@ Returns a list of org-links, that point to gnus articles."
 ID-LIST is a list of org-ids to search in `gnus-mylist--articles-list'.
 Returns a combined list of all article message-ids found."
   ;; FIXME: use equal for the test
-  (mapcan '(lambda (id) (gnus-mylist-filter-prop 'message-id id #'string=))
+  (mapcan (lambda (id) (gnus-mylist-filter-prop 'message-id id #'string=))
           id-list))
 
 (defun gnus-mylist-org-message-add-header (header value)

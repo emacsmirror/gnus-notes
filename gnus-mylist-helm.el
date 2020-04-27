@@ -94,8 +94,8 @@
 (require 'gnus)
 (require 'helm)
 (require 'hydra)
-(require 'async)                        ; required by helm
-(require 'lv)                           ; required by hydra
+(require 'async)
+(require 'lv)
 (require 'gnus-mylist)
 (require 'gnus-mylist-org)
 

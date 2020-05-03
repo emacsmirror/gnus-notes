@@ -23,7 +23,8 @@ jobs:
     - name: Run
       env:
         # RECIPE is your recipe as written for MELPA:
-        RECIPE: (gnus-mylist-helm :fetcher git :url "file:///home/dias/Documents/src/gitrepos/gnus-mylist-helm")
+        # local url: "file:///home/dias/Documents/src/gitrepos/gnus-mylist-helm"
+        RECIPE: (gnus-mylist-helm :fetcher github  :repo "deusmax/gnus-mylist-helm")
         # set this to false (or remove it) if the package isn't on MELPA:
         EXIST_OK: true
       run: echo $EXIST_OK && make -C ~/melpazoid

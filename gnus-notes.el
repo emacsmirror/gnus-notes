@@ -1,4 +1,4 @@
-;;; gnus-notes.el --- Keep handy notes of your read Gnus articles with helm and org.  -*- lexical-binding: t -*-
+;;; gnus-notes.el --- Keep handy notes of read Gnus articles with helm and org  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Deus Max
 

@@ -1,9 +1,9 @@
-;;; gnus-mylist-org.el --- Some org-mode integration for gnus-mylist  -*- lexical-binding: t -*-
+;;; gnus-notes-org.el --- Some org-mode integration for gnus-notes  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Deus Max
 
 ;; Author: Deus Max <deusmax@gmx.com>
-;; URL: https://github.com/deusmax/gnus-mylist-helm
+;; URL: https://github.com/deusmax/gnus-notes
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "25.1") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
 ;; Keywords: convenience, mail, bbdb, gnus helm, org, hydra
@@ -26,9 +26,12 @@
 ;;; Commentary:
 
 ;; Keep track of your seen messages, using a helm interface.
-;; Gnus-mylist provides an interface with minimum configuration.
+;; Gnus-notes provides an interface with minimum configuration.
 ;; It should "just work".
 ;; This file provides some integration with Org-mode and TODO headings.
+;;
+;; For org-mode integration, activate the key bindings:
+;;     (gnus-notes-org-define-key)       ; default "C-c t"
 ;;
 
 ;;; Code:
@@ -44,25 +47,25 @@
 (require 'org-capture)
 (require 'async)                        ; required by helm
 (require 'lv)                           ; required by hydra
-(require 'gnus-mylist)
+(require 'gnus-notes)
 
-(defvar gnus-mylist-helm-map)
-(defvar gnus-mylist-helm-current-data-pa)
+(defvar gnus-notes-helm-map)
+(defvar gnus-notes-helm-current-data-pa)
 
-(declare-function gnus-mylist-helm-candidates "gnus-mylist-helm" (articles-list))
+(declare-function gnus-notes-helm-candidates "gnus-notes-helm" (articles-list))
 
-(defgroup gnus-mylist-org nil
-  "Org integration for gnus-mylist"
-  :tag "Gnus Mylist Org"
-  :group 'gnus-mylist)
+(defgroup gnus-notes-org nil
+  "Org integration for gnus-notes"
+  :tag "Gnus Notes Org"
+  :group 'gnus-notes)
 
-(defcustom gnus-mylist-org-capture-key "e"
-    "The key used for `gnus-mylist-org-capture-template'.
+(defcustom gnus-notes-org-capture-key "e"
+    "The key used for `gnus-notes-org-capture-template'.
 The template key should match with this value."
-  :group 'gnus-mylist-org
+  :group 'gnus-notes-org
   :type 'string)
 
-(defcustom gnus-mylist-org-capture-template
+(defcustom gnus-notes-org-capture-template
   '("e" "Email Reply Scheduled (a)" entry
     (file+olp "~/Documents/org/notes.org" "Tasks" "Emails")
  "* RPLY %^{Description}  %^g
@@ -77,7 +80,7 @@ The template key should match with this value."
   "A template for capturing gnus emails and other articles.
 A single entry for `org-capture-templates'. See its documentation
 for details."
-  :group 'gnus-mylist-org
+  :group 'gnus-notes-org
   :type
   (let ((file-variants '(choice :tag "Filename       "
 				(file :tag "Literal")
@@ -156,36 +159,36 @@ for details."
 				    ((const :format "%v " :table-line-pos) (string))
 				    ((const :format "%v " :kill-buffer) (const t))))))))
 
-(defvar gnus-mylist-org--template-context (list gnus-mylist-org-capture-key ""
+(defvar gnus-notes-org--template-context (list gnus-notes-org-capture-key ""
                                                 '((in-mode . "article-mode")
                                                   (in-mode . "summary-mode")))
-  "Context for when `gnus-mylist-org-capture-template' is available.")
+  "Context for when `gnus-notes-org-capture-template' is available.")
 
-(defvar gnus-mylist-org--current-org-id nil
+(defvar gnus-notes-org--current-org-id nil
   "Internal variable; for temporary holding the current heading org-id.")
 
-(defvar gnus-mylist-org--current-heading-alist nil
+(defvar gnus-notes-org--current-heading-alist nil
   "Internal variable; for temporary holding the current heading info.")
 
-(defvar gnus-mylist-org--last-window-configuration nil
+(defvar gnus-notes-org--last-window-configuration nil
   "Internal variable; for saving a window configuration.")
 
 ;; FIXME: here it is hoped the top article-crumb is the top link. Most likely true,
 ;; but not guaranteed. Crumbs may have been deleted. Need to check and confirm, this
 ;; to be the case.
-(defun gnus-mylist-org-handle-mail-top ()
+(defun gnus-notes-org-handle-mail-top ()
   "Reply to the top email message on the current org headline.
 The body of the org heading must have at least one gnus link to
 reply to."
   (interactive)
-  (let ((art (car-safe (alist-get 'articles-crumbs gnus-mylist-org--current-heading-alist))))
+  (let ((art (car-safe (alist-get 'articles-crumbs gnus-notes-org--current-heading-alist))))
     (if art
-        (gnus-mylist--reply-article-wide-yank art)
-      (gnus-message 5 "gnus-mylist has lost the article, revisit top article.")
-      (gnus-mylist-org-clear-heading-alist))))
+        (gnus-notes--reply-article-wide-yank art)
+      (gnus-message 5 "gnus-notes has lost the article, revisit top article.")
+      (gnus-notes-org-clear-heading-alist))))
 
 ;; TODO: implement additional nnir engines, currently only IMAP (2020-04-013)
-(defun gnus-mylist-org-handle-mail-view ()
+(defun gnus-notes-org-handle-mail-view ()
   "Do a gnus nnir search for the gnus messages on the current org headline.
 The messages will be shown in a Gnus ephemeral group using nnir.
 Currently, the search is limited to nnimap groups."
@@ -197,8 +200,8 @@ Currently, the search is limited to nnimap groups."
          (seq-filter
           (lambda (p)
             (string-match-p "^nnimap" (gnus-group-server (car p))))
-          (mapcar #'gnus-mylist-split-org-link-gnus
-                  (alist-get 'org-links-gnus gnus-mylist-org--current-heading-alist))))
+          (mapcar #'gnus-notes-split-org-link-gnus
+                  (alist-get 'org-links-gnus gnus-notes-org--current-heading-alist))))
         groups-list msgids-list)
     (if (eql 0 (length nnimap-links-split))
         (message-box "No Gnus IMAP messages found under current org heading subtree.")
@@ -206,10 +209,10 @@ Currently, the search is limited to nnimap groups."
       (dolist (link nnimap-links-split)
         (cl-pushnew (cdr link) msgids-list :test #'equal)
         (cl-pushnew (car link) groups-list :test #'equal))
-      (gnus-mylist-org-nnir-search (gnus-mylist-org-nnir-query-spec msgids-list)
-                                   (gnus-mylist-org-nnir-group-spec groups-list)))))
+      (gnus-notes-org-nnir-search (gnus-notes-org-nnir-query-spec msgids-list)
+                                   (gnus-notes-org-nnir-group-spec groups-list)))))
 
-(defun gnus-mylist-org-nnir-group-spec (groups)
+(defun gnus-notes-org-nnir-group-spec (groups)
   "Given a GROUPS list format a nnir `group-spec' list.
 No duplicate groups are expected. Each group element in the list should be
 unique. Check, for uniqueness, before calling this function."
@@ -222,7 +225,7 @@ unique. Check, for uniqueness, before calling this function."
                                                   (list gr)
                                                 (push gr (car item))))))))
 
-(defun gnus-mylist-org-nnir-query-spec (query &optional criteria)
+(defun gnus-notes-org-nnir-query-spec (query &optional criteria)
   "Given an IMAP QUERY, format a nnir `query-spec' list.
 Default query CRITERIA on article Message-ID. See
 `nnir-imap-search-arguments' for available IMAP search items for
@@ -231,7 +234,7 @@ Message-ID."
   (list (cons 'query (string-join query " OR "))
         (cons 'criteria (or criteria "HEADER \"Message-ID\""))))
 
-(defun gnus-mylist-org-nnir-search (query-spec group-spec)
+(defun gnus-notes-org-nnir-search (query-spec group-spec)
   "Convenience wrapper to `gnus-group-read-ephemeral-group'.
 See also function `gnus-group-make-nnir-group' for details on the QUERY-SPEC and
 GROUP-SPEC."
@@ -245,7 +248,7 @@ GROUP-SPEC."
                             (cons 'nnir-group-spec group-spec)))
     (cons 'nnir-artlist nil))))
 
-(defun gnus-mylist-org-get-heading-alist ()
+(defun gnus-notes-org-get-heading-alist ()
   "Get the text of a org heading and extract the info needed."
   (interactive)
   (save-excursion
@@ -257,60 +260,60 @@ GROUP-SPEC."
            (hd-txt (save-excursion
                      (buffer-substring-no-properties (point-at-bol 2)
                                                      (org-end-of-subtree t))))
-           (org-links-gnus (gnus-mylist-org-search-string-org-links-gnus hd-txt))
+           (org-links-gnus (gnus-notes-org-search-string-org-links-gnus hd-txt))
            (articles-msgid (mapcar #'cdr
-                                   (mapcar #'gnus-mylist-split-org-link-gnus
+                                   (mapcar #'gnus-notes-split-org-link-gnus
                                            org-links-gnus)))
-           (articles (gnus-mylist-org-filter-message-ids-list articles-msgid)))
+           (articles (gnus-notes-org-filter-message-ids-list articles-msgid)))
       (list
        (cons 'uid uid)
        (cons 'org-hd-marker org-hd-marker)
-       (cons 'windc gnus-mylist-org--last-window-configuration)
+       (cons 'windc gnus-notes-org--last-window-configuration)
        (cons 'entry-text hd-txt)
        (cons 'org-links-gnus org-links-gnus)
-       (cons 'orgids (gnus-mylist-org-get-orgids hd-txt))
+       (cons 'orgids (gnus-notes-org-get-orgids hd-txt))
        (cons 'articles-msgid articles-msgid)
        (cons 'articles-crumbs articles)))))
 
-(defun gnus-mylist-org-set-heading-alist ()
-  "Save the heading info needed to `gnus-mylist-org--current-heading-alist'."
+(defun gnus-notes-org-set-heading-alist ()
+  "Save the heading info needed to `gnus-notes-org--current-heading-alist'."
   (interactive)
-  (setq gnus-mylist-org--current-heading-alist (gnus-mylist-org-get-heading-alist)))
+  (setq gnus-notes-org--current-heading-alist (gnus-notes-org-get-heading-alist)))
 
-(defun gnus-mylist-org-clear-heading-alist ()
-  "Clear all data from variable `gnus-mylist-org--current-heading-alist'."
+(defun gnus-notes-org-clear-heading-alist ()
+  "Clear all data from variable `gnus-notes-org--current-heading-alist'."
   (interactive)
-  (setq gnus-mylist-org--current-heading-alist nil))
+  (setq gnus-notes-org--current-heading-alist nil))
 
-(defun gnus-mylist-org-message-add-hooks ()
+(defun gnus-notes-org-message-add-hooks ()
   "Add the hooks for an outgoing message."
-  (add-hook 'message-sent-hook #'gnus-mylist-org-message-sent-actions t)
-  (add-hook 'message-cancel-hook #'gnus-mylist-org-message-remove-hooks))
+  (add-hook 'message-sent-hook #'gnus-notes-org-message-sent-actions t)
+  (add-hook 'message-cancel-hook #'gnus-notes-org-message-remove-hooks))
 
-(defun gnus-mylist-org-message-remove-hooks ()
-  "Remove the hooks set by `gnus-mylist-org-message-add-hooks'."
-  (remove-hook 'message-sent-hook #'gnus-mylist-org-message-sent-actions)
-  (remove-hook 'message-cancel-hook #'gnus-mylist-org-message-remove-hooks))
+(defun gnus-notes-org-message-remove-hooks ()
+  "Remove the hooks set by `gnus-notes-org-message-add-hooks'."
+  (remove-hook 'message-sent-hook #'gnus-notes-org-message-sent-actions)
+  (remove-hook 'message-cancel-hook #'gnus-notes-org-message-remove-hooks))
 
 ;; FIXME: Exploratory code, need to handle cancelling and aborting.
 ;; FIXME: Message-send (C-c C-s) results in empty group field.
-(defun gnus-mylist-org-message-sent-actions ()
+(defun gnus-notes-org-message-sent-actions ()
   "Tidy up after an outgoing message is sent.
 Add a gnus-link to the org entry as a log-note, then tidy up."
-  (when gnus-mylist-org--current-heading-alist
-    (let* ((artdata-out (car gnus-mylist--articles-list))
+  (when gnus-notes-org--current-heading-alist
+    (let* ((artdata-out (car gnus-notes--articles-list))
            (root-marker (alist-get 'org-hd-marker
-                                   gnus-mylist-org--current-heading-alist))
-           (org-link (gnus-mylist--create-org-link artdata-out)))
+                                   gnus-notes-org--current-heading-alist))
+           (org-link (gnus-notes--create-org-link artdata-out)))
       ;; confirm the last item was an outgoing message
-      (when (gnus-mylist-outgoing-message-p artdata-out)
+      (when (gnus-notes-outgoing-message-p artdata-out)
         (org-with-point-at root-marker
           (org-add-log-setup 'note nil nil nil org-link))
-        (gnus-mylist-org-clear-heading-alist)
-        (gnus-mylist-org-message-remove-hooks)))))
+        (gnus-notes-org-clear-heading-alist)
+        (gnus-notes-org-message-remove-hooks)))))
 
 ;;; FIXME: use el-patch for this advice
-(defun gnus-mylist-org-outshine-comment-region-advice (beg end &optional arg)
+(defun gnus-notes-org-outshine-comment-region-advice (beg end &optional arg)
   "Check the current major mode.
 BEG, END and optional ARG are the arguments of the function to be advised."
   (ignore beg end arg)                  ; keep byte compiler quiet
@@ -320,71 +323,71 @@ BEG, END and optional ARG are the arguments of the function to be advised."
 (when (featurep 'outshine)
   (advice-add 'outshine-comment-region
               :before-until
-              #'gnus-mylist-org-outshine-comment-region-advice))
+              #'gnus-notes-org-outshine-comment-region-advice))
 
 ;; if needed during development.
-;; (advice-remove 'outshine-comment-region #'gnus-mylist-org-outshine-comment-region-advice)
+;; (advice-remove 'outshine-comment-region #'gnus-notes-org-outshine-comment-region-advice)
 
-(defun gnus-mylist-org-handle-mail-crumbs ()
+(defun gnus-notes-org-handle-mail-crumbs ()
   "Show available gnus messages from the current org headline in helm."
   (interactive)
   (helm
    :sources (helm-build-sync-source "Heading articles"
-              :keymap gnus-mylist-helm-map
+              :keymap gnus-notes-helm-map
               :candidates (lambda ()
-                            (gnus-mylist-helm-candidates
+                            (gnus-notes-helm-candidates
                              (alist-get 'articles-crumbs
-                                        gnus-mylist-org--current-heading-alist)))
-              :filtered-candidate-transformer  'gnus-mylist-helm-candidate-transformer
-              :persistent-action 'gnus-mylist-org-helm-hydra-pa
+                                        gnus-notes-org--current-heading-alist)))
+              :filtered-candidate-transformer  'gnus-notes-helm-candidate-transformer
+              :persistent-action 'gnus-notes-org-helm-hydra-pa
               :persistent-help "view hydra"
-              :action '(("Open article"               . gnus-mylist--open-article)
-                        ("Wide reply and yank"        . gnus-mylist--reply-article-wide-yank)
-                        ("Show thread"                . gnus-mylist--show-article-thread)
-                        ("Copy org link to kill ring" . gnus-mylist-kill-new-org-link)
-                        ("Display BBDB entries"       . gnus-mylist-bbdb-display-all)))
+              :action '(("Open article"               . gnus-notes--open-article)
+                        ("Wide reply and yank"        . gnus-notes--reply-article-wide-yank)
+                        ("Show thread"                . gnus-notes--show-article-thread)
+                        ("Copy org link to kill ring" . gnus-notes-kill-new-org-link)
+                        ("Display BBDB entries"       . gnus-notes-bbdb-display-all)))
    :buffer "*helm org heading articles*"
    :truncate-lines t))
 
-(defun gnus-mylist-org-handle-mail ()
+(defun gnus-notes-org-handle-mail ()
   "Handle mail in org heading.
 First, this function sets the variable
-`gnus-mylist--current-heading-alist' with the the current heading
+`gnus-notes--current-heading-alist' with the the current heading
 info. Second, it activates a hook to run after sending a message,
 that will take care of the org stuff. Then it calls a hydra to
 select the action on the email articles."
   (interactive)
-  (setq gnus-mylist-org--last-window-configuration (current-window-configuration))
-  (gnus-mylist-org-set-heading-alist)
-  (if (alist-get 'org-links-gnus gnus-mylist-org--current-heading-alist)
+  (setq gnus-notes-org--last-window-configuration (current-window-configuration))
+  (gnus-notes-org-set-heading-alist)
+  (if (alist-get 'org-links-gnus gnus-notes-org--current-heading-alist)
       (progn
-        (gnus-mylist-org-message-add-hooks)
-        (hydra-gnus-mylist-org-handle-mail/body))
+        (gnus-notes-org-message-add-hooks)
+        (hydra-gnus-notes-org-handle-mail/body))
     (gnus-message 5 "No gnus links found in current org entry")
-    (gnus-mylist-org-clear-heading-alist)))
+    (gnus-notes-org-clear-heading-alist)))
 
-(defhydra hydra-gnus-mylist-org-handle-mail (:color blue :columns 2)
+(defhydra hydra-gnus-notes-org-handle-mail (:color blue :columns 2)
   "Reply to email from current heading"
-  ("h" gnus-mylist-org-handle-mail-crumbs "View in helm")
-  ("t" gnus-mylist-org-handle-mail-top "Reply to top")
-  ("v" gnus-mylist-org-handle-mail-view "Search Gnus (imap)")
-  ("q" gnus-mylist-org-clear-heading-alist "quit"))
+  ("h" gnus-notes-org-handle-mail-crumbs "View in helm")
+  ("t" gnus-notes-org-handle-mail-top "Reply to top")
+  ("v" gnus-notes-org-handle-mail-view "Search Gnus (imap)")
+  ("q" gnus-notes-org-clear-heading-alist "quit"))
 
-(defun gnus-mylist-org-capture-mail ()
+(defun gnus-notes-org-capture-mail ()
   "Capture a note on an email using the `org-mode' capture interface.
 While viewing emails in gnus, in a summary or article buffer,
 quickly capture an org note capture system. The capture template
-will be preselected with the `gnus-mylist-org-capture-key',
+will be preselected with the `gnus-notes-org-capture-key',
 unless it is not defined in `org-capture-templates'. The gnus
 keywords should be available during template expansion."
   (interactive)
   (unless (memq major-mode '(gnus-summary-mode gnus-article-mode))
     (user-error "Not in a gnus summary or article buffer"))
   (org-capture nil
-               (cl-find gnus-mylist-org-capture-key
+               (cl-find gnus-notes-org-capture-key
                         (mapcar #'car org-capture-templates) :test #'equal)))
 
-(defun gnus-mylist-org-get-entry (&optional keep-properties)
+(defun gnus-notes-org-get-entry (&optional keep-properties)
   "Get the org entry text.
 With the optional KEEP-PROPERTIES non-nil keep the text
 properties. By default, text properties are removed."
@@ -395,28 +398,28 @@ properties. By default, text properties are removed."
       (org-get-entry)
     (gnus-string-remove-all-properties (org-get-entry))))
 
-(defun gnus-mylist-org-search-string-org-links-gnus (txt)
+(defun gnus-notes-org-search-string-org-links-gnus (txt)
   "Search text TXT for org-links, having protocol \"gnus:\".
 Returns a list of org-links, that point to gnus articles."
   (mapcar #'car
           (s-match-strings-all "\\[\\[gnus:.+\\]\\]"
                                (gnus-string-remove-all-properties txt))))
 
-(defun gnus-mylist-org-get-orgids (txt)
+(defun gnus-notes-org-get-orgids (txt)
   "Find the org-ids in org entry text TXT."
   (mapcar (lambda (x) (cadr (split-string x ":" t " +")))
           (mapcar #'car
                   (s-match-strings-all "^ +:ID:.+" txt))))
 
-(defun gnus-mylist-org-filter-message-ids-list (id-list)
+(defun gnus-notes-org-filter-message-ids-list (id-list)
   "Get the article message-id that have any of the given org-ids.
-ID-LIST is a list of org-ids to search in `gnus-mylist--articles-list'.
+ID-LIST is a list of org-ids to search in `gnus-notes--articles-list'.
 Returns a combined list of all article message-ids found."
   ;; FIXME: use equal for the test
-  (mapcan (lambda (id) (gnus-mylist-filter-prop 'message-id id #'string=))
+  (mapcan (lambda (id) (gnus-notes-filter-prop 'message-id id #'string=))
           id-list))
 
-(defun gnus-mylist-org-message-add-header (header value)
+(defun gnus-notes-org-message-add-header (header value)
   "Add a HEADER when composing a new message.
 VALUE is the value for the header."
   (when (and value (derived-mode-p 'message-mode 'mail-mode))
@@ -426,18 +429,18 @@ VALUE is the value for the header."
         (open-line 1)
         (message-insert-header header value)))))
 
-(defun gnus-mylist-org-message-add-header-orgid (&optional orgid)
+(defun gnus-notes-org-message-add-header-orgid (&optional orgid)
   "Add an X-Org-Id header to an outgoing message.
 When the optional argument ORGID is missing, will get the orgid
-value from `gnus-mylist-org-get-heading-alist'."
-  (gnus-mylist-org-message-add-header
+value from `gnus-notes-org-get-heading-alist'."
+  (gnus-notes-org-message-add-header
    'X-Org-Id (or orgid
-                  (alist-get 'uid gnus-mylist-org--current-heading-alist))))
+                  (alist-get 'uid gnus-notes-org--current-heading-alist))))
 
 (defhydra hydra-gnus-org-helm (:columns 4 :exit nil)
   "Persistent actions"
-  ("c" (gnus-mylist-kill-new-org-link gnus-mylist-helm-current-data-pa) "Copy Org link")
-  ("b" (gnus-mylist-bbdb-display-all  gnus-mylist-helm-current-data-pa) "BBDB entries")
+  ("c" (gnus-notes-kill-new-org-link gnus-notes-helm-current-data-pa) "Copy Org link")
+  ("b" (gnus-notes-bbdb-display-all  gnus-notes-helm-current-data-pa) "BBDB entries")
   ("{" helm-enlarge-window "enlarge")
   ("}" helm-narrow-window "narrow")
   (">" helm-toggle-truncate-line "wrap lines")
@@ -446,33 +449,33 @@ value from `gnus-mylist-org-get-heading-alist'."
   ("U" helm-refresh "update data")
   ("q" nil "quit" :exit t))
 
-(defun gnus-mylist-org-helm-hydra-pa (artdata)
+(defun gnus-notes-org-helm-hydra-pa (artdata)
   "Persistent action activates a Hydra.
 ARTDATA is the current article in the helm buffer."
-  (setq gnus-mylist-helm-current-data-pa artdata)
+  (setq gnus-notes-helm-current-data-pa artdata)
   (hydra-gnus-org-helm/body))
 
 ;; keybindings
-(defun gnus-mylist-org-define-key (&optional key)
+(defun gnus-notes-org-define-key (&optional key)
   "Bind KEY for org integration.
 A convenience function to define a single key sequence for
 integration with org. By default KEY is set to \"<Control-c t>\"."
   (unless key (setq key "C-c t"))
-  (define-key org-mode-map          (kbd key) #'gnus-mylist-org-handle-mail)
-  (org-defkey org-agenda-keymap     (kbd key) #'gnus-mylist-org-handle-mail)
-  (define-key gnus-summary-mode-map (kbd key) #'gnus-mylist-org-capture-mail)
-  (define-key gnus-article-mode-map (kbd key) #'gnus-mylist-org-capture-mail))
+  (define-key org-mode-map          (kbd key) #'gnus-notes-org-handle-mail)
+  (org-defkey org-agenda-keymap     (kbd key) #'gnus-notes-org-handle-mail)
+  (define-key gnus-summary-mode-map (kbd key) #'gnus-notes-org-capture-mail)
+  (define-key gnus-article-mode-map (kbd key) #'gnus-notes-org-capture-mail))
 
 ;; init actions
-(defun gnus-mylist-org-init ()
-  "Start-up actions for `gnus-mylist-org'."
-  (when gnus-mylist-org-capture-template
-    (add-to-list 'org-capture-templates gnus-mylist-org-capture-template ))
-  (when gnus-mylist-org--template-context
-    (add-to-list 'org-capture-templates-contexts gnus-mylist-org--template-context )))
+(defun gnus-notes-org-init ()
+  "Start-up actions for `gnus-notes-org'."
+  (when gnus-notes-org-capture-template
+    (add-to-list 'org-capture-templates gnus-notes-org-capture-template ))
+  (when gnus-notes-org--template-context
+    (add-to-list 'org-capture-templates-contexts gnus-notes-org--template-context )))
 
-(provide 'gnus-mylist-org)
-;;; gnus-mylist-org.el ends here
+(provide 'gnus-notes-org)
+;;; gnus-notes-org.el ends here
 
 ;; Local Variables:
 ;; coding: utf-8

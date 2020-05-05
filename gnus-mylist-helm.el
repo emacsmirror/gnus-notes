@@ -5,8 +5,8 @@
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; URL: https://github.com/deusmax/gnus-mylist-helm
 ;; Version: 0.3.0
-;; Package-Requires: ((emacs "25.1.0") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
-;; Keywords: convenience, mail, gnus, helm, org, hydra
+;; Package-Requires: ((emacs "25.1") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
+;; Keywords: convenience, mail, bbdb, gnus, helm, org, hydra
 
 ;; This file is not part of GNU Emacs.
 
@@ -117,7 +117,7 @@
 
 (defun gnus-mylist-helm-display-cycle ()
   "Cycle the levels of article info to display.
-The user interactively changes the article infromation display
+The user interactively changes the article information display
 level. Currently only the \"default\", \"To\" and \"Cc\" levels
 are implemented. The function will refresh the `helm' buffer to
 display the new level."
@@ -128,7 +128,7 @@ display the new level."
 
 (defun gnus-mylist-helm-display-select ()
   "Select the level of article info to display.
-The user selects the article infromation display level. Currently only the
+The user selects the article information display level. Currently only the
   \"default\", \"To\" and \"Cc\" levels are implemented.
 The function will refresh the `helm' buffer to display the new level."
   (interactive)
@@ -142,9 +142,9 @@ The function will refresh the `helm' buffer to display the new level."
 (defun gnus-mylist-helm-candidate-transformer (candidates source)
   "Transform the `helm' data for the display level selected.
 This function acts on the filtered data, to show the selected
-display inforrmation. CANDIDATES is the list of filtered data.
-SOURCE is the `helm' source. Both argumente are passed by `helm',
-when the function is called. Also the `helm' multiline feature is
+display information. CANDIDATES is the list of filtered data.
+SOURCE is the `helm' source. Both arguments are passed by `helm',
+when the function is called. Also the `helm' multi-line feature is
 turned on and off, as needed."
   (pcase gnus-mylist-helm-display-extra
     ('To (helm-attrset 'multiline nil source)
@@ -228,13 +228,13 @@ function argument to `mapcar.'"
 
 (defun gnus-mylist-helm-candidates (articles-list)
   "Initialize the `helm' candidates data.
-ARTICLES-LIST is the data list of arcticles for helm."
+ARTICLES-LIST is the data list of articles for helm."
   (mapcar #'gnus-mylist-helm-candidates-display-default articles-list))
 
 (defun gnus-mylist-helm-forget (_artlistitem)
   "Remove Gnus articles from `gnus-mylist--articles-list' using `helm'.
 Helm allows for marked articles or current selection.  See
-function `helm-marked-candidates'.  Argument _artlistitem is not used."
+function `helm-marked-candidates'.  Argument _ARTLISTITEM is not used."
   (let* ((cand (helm-marked-candidates))
          (l1-cand (length cand))
          (l1-gral (length gnus-mylist--articles-list)))
@@ -245,7 +245,7 @@ function `helm-marked-candidates'.  Argument _artlistitem is not used."
                   l1-cand)))
 
 (defun gnus-mylist-helm-forget-pa (artdata)
-  "Forget current or marked articles without quiting `helm'.
+  "Forget current or marked articles without quitting `helm'.
 This is the persistent action defined for the helm session.
 Argument ARTDATA is the article data."
   (gnus-mylist-helm-forget artdata)

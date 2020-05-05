@@ -5,8 +5,8 @@
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; URL: https://github.com/deusmax/gnus-mylist-helm
 ;; Version: 0.3.0
-;; Package-Requires: ((emacs "25.1"))
-;; Keywords: convenience, mail, gnus helm, org, hydra
+;; Package-Requires: ((emacs "25.1") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
+;; Keywords: convenience, mail, bbdb, gnus helm, org, hydra
 
 ;; This file is not part of GNU Emacs.
 
@@ -312,7 +312,7 @@ Add a gnus-link to the org entry as a log-note, then tidy up."
 ;;; FIXME: use el-patch for this advice
 (defun gnus-mylist-org-outshine-comment-region-advice (beg end &optional arg)
   "Check the current major mode.
-BEG, END and optional ARG are the agruments of the function to be advised."
+BEG, END and optional ARG are the arguments of the function to be advised."
   (ignore beg end arg)                  ; keep byte compiler quiet
   (eq major-mode 'gnus-summary-mode))
 
@@ -372,7 +372,7 @@ select the action on the email articles."
 
 (defun gnus-mylist-org-capture-mail ()
   "Capture a note on an email using the `org-mode' capture interface.
-While viewing emails in gnus, in a summary or artile buffer,
+While viewing emails in gnus, in a summary or article buffer,
 quickly capture an org note capture system. The capture template
 will be preselected with the `gnus-mylist-org-capture-key',
 unless it is not defined in `org-capture-templates'. The gnus

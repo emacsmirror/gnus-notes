@@ -5,8 +5,8 @@
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; URL: https://github.com/deusmax/gnus-mylist-helm
 ;; Version: 0.3.0
-;; Package-Requires: ((emacs "25.1"))
-;; Keywords: convenience, mail, gnus, helm, org, hydra
+;; Package-Requires: ((emacs "25.1") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
+;; Keywords: convenience, mail, bbdb, gnus, helm, org, hydra
 
 ;; This file is not part of GNU Emacs.
 
@@ -65,6 +65,7 @@
 (require 'helm-lib)
 (require 'bbdb-mua)
 
+(declare-function gnus-mylist-org-init "gnus-mylist-org" nil)
 (declare-function org-strip-quotes "ext:org-macs" (string))
 (declare-function org-gnus-follow-link (if (featurep 'ol-gnus) "ext:ol-gnus" "ext:org-gnus") (&optional group article))
 
@@ -92,7 +93,7 @@ Used only when `gnus-mylist-file' is non-nil."
   :type 'directory)
 
 (defcustom gnus-mylist-format-time-string "%F %a %T"
-  "A string for formating the article date.
+  "A string for formatting the article date.
 The format is used by `format-time-string'. See its documentation
 for details on format specifiers. For example, to produce a full
 ISO 8601 format, use \"%FT%T%z\", for org style use \"%F %a %T\".
@@ -214,7 +215,7 @@ fall back to a newsgroup name, if available."
 
 (defun gnus-mylist--track-article ()
   "Store this article in the mylist article list.
-For tracking of Backend moves (B-m) see `gnus-mylist--track-move-article'."
+For tracking of backend moves (B-m) see `gnus-mylist--track-move-article'."
   (gnus-mylist-add-to-list (gnus-mylist--get-article-data)))
 
 (defun gnus-mylist--track-move-article (action article _from-group to-group _select-method)
@@ -381,7 +382,7 @@ When PRINT-MSG is non-nil, show a message about it."
 
 (defun gnus-mylist-bbdb-display-all (artdata)
   "Display sender and recipients in BBDB.
-Diplay sender and all recipients in BBDB. Ask to create a BBDB entry, if not in
+Display sender and all recipients in BBDB. Ask to create a BBDB entry, if not in
 BBDB. ARTDATA is the gnus-mylist data for the selected article."
   (let ((recipients (alist-get 'recipients artdata))
         (search-list '(bbdb-search (bbdb-records))))
@@ -422,7 +423,7 @@ to find any more matches."
 (defun gnus-mylist-find-message-id (message-id)
   "Search the gnus-mylist articles data by MESSAGE-ID.
 Returns the first article in `gnus-mylist--articles-list' that
-matches the MESSAGE-ID provided. A convinience wrapper for
+matches the MESSAGE-ID provided. A convenience wrapper for
 `gnus-mylist-find-prop'."
   (gnus-mylist-find-prop 'message-id  message-id))
 
@@ -529,7 +530,7 @@ FILE is the full file path."
     (error "Can not read file '%s'" file)))
 
 (defun gnus-mylist-save ()
-  "Save the gnus mylist items to file for persistance."
+  "Save the gnus mylist items to file for persistence."
   (interactive)
   (when gnus-mylist-file
     (if (file-writable-p gnus-mylist-file)

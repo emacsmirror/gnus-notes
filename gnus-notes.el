@@ -29,11 +29,11 @@
 ;;
 ;; This file provides the core setup and data needs of gnus-notes.
 ;;
-;; This is "my notes", so I can keep only the articles that are
-;; important to me. The rest I can simply remove from notes,
-;; without affecting Gnus. If an article is removed, by accident or
-;; I want it back for whatever reason, no problem. All I have to do
-;; is view the article in gnus, and it is back on the list !
+;; Keep notes on the gnus articles that are important to me. The
+;; rest can simply be removed from gnus-notes, without affecting Gnus.
+;; If an article is removed from gnus-notes, by accident or I want it
+;; back for whatever reason, no problem. All I have to do is view the
+;; article in gnus, and it is back on gnus-notes.
 ;;
 ;; Gnus notes works in the background silently, keeping track of the
 ;; articles read with gnus. When an article is read, it adds a quick

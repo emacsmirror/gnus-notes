@@ -5,7 +5,7 @@
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; URL: https://github.com/deusmax/gnus-notes
 ;; Version: 0.3.0
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "25.1") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
 ;; Keywords: convenience, mail, bbdb, gnus helm, org, hydra
 
 ;; This file is not part of GNU Emacs.

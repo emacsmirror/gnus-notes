@@ -255,6 +255,9 @@
    is deleted from the list. The actual article(s) is still available in gnus and
    can be read back to gnus-notes.
 
+* License
+  This work is distributed under the terms of the Gnu General Public License Version
+  3 or later. See [[LICENSE][LICENSE]].
 * Emacs                                                   :noexport:comment:
 
 #  LocalWords:  README BBDB subtree

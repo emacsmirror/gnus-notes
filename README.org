@@ -14,7 +14,7 @@
 * Introduction
 
   Keep notes on Gnus articles and emails - not all of them, just the ones that matter,
-  viewwd with the convenience of helm. Keep more extensive notes and tasks about
+  viewed with the convenience of helm. Keep more extensive notes and tasks about
   your gnus-notes with Org-mode.
 
   The gnus-notes works with your Gnus, it can not replace it. Neither can it damage

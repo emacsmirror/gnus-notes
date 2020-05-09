@@ -80,7 +80,7 @@ The template key should match with this value."
 A single entry for `org-capture-templates'. See its documentation
 for details."
   :group 'gnus-notes-org
-  :type (second (get 'org-capture-templates 'custom-type)))
+  :type (cadr (get 'org-capture-templates 'custom-type)))
 
 (defvar gnus-notes-org--template-context (list gnus-notes-org-capture-key ""
                                                 '((in-mode . "article-mode")

@@ -381,8 +381,8 @@ link to the article. The prefix default is \"- \"."
             (org-insert-item)
             (insert (gnus-notes-quick-note artdata "")))
         (org-return-indent)
-        (insert (gnus-notes-quick-note artdata))))
-  (insert (gnus-notes-quick-note artdata " - ")))
+        (insert (gnus-notes-quick-note artdata)))
+    (insert (gnus-notes-quick-note artdata " - "))))
 
 (defun gnus-notes-update-message-id (message-id to-group &optional no-crumb-save)
   "Update the Gnus article with MESSAGE-ID in `gnus-notes--articles-list'.

@@ -238,12 +238,13 @@ Also a number of possible actions are defined."
   (helm :sources (helm-build-sync-source "Gnus notes articles"
                    :keymap gnus-notes-helm-map
                    :candidates (lambda () (gnus-notes-helm-candidates gnus-notes--articles-list))
-                   :filtered-candidate-transformer  'gnus-notes-helm-candidate-transformer
+                   :filtered-candidate-transformer 'gnus-notes-helm-candidate-transformer
                    :persistent-action 'gnus-notes-helm-hydra-pa
                    :persistent-help "quick actions"
                    :action '(("Open article"               . gnus-notes--open-article)
                              ("Reply article"              . gnus-notes--reply-article-wide-yank)
                              ("Show thread"                . gnus-notes--show-article-thread)
+                             ("Edit display line"          . gnus-notes--article-display-line-edit)
                              ("Copy org link to kill ring" . gnus-notes-kill-new-org-link)
                              ("Insert org link"            . gnus-notes-insert-org-link)
                              ("Insert quick-note"          . gnus-notes-insert-quick-note)

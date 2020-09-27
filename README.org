@@ -105,12 +105,12 @@
 
    Below is a shot of =helm-gnus-notes= showing (fake) emails from the [[https://elpa.gnu.org/packages/gnus-mock.html][gnus-mock]]
    package (a Mock Gnus installation for testing).
-   #+name: fig:helm-mocky01
+   #+name: fig.helm-mocky01
    [[file:./img/readme-Mocky-01.png]]
 
    The helm search is performed on the whole lines. Matching and refining the search
    is part of helm:
-   #+name: fig:helm-mocky02
+   #+name: fig.helm-mocky02
    [[file:./img/readme-Mocky-02.png]]
 
    Gnus-notes displays one email (or gnus article) each line, with the following
@@ -122,16 +122,26 @@
 
    For other gnus article, such as =RSS= feeds instead of emails, the above info are
    displayed similarly:
-   #+name: fig:helm-nrss
+   #+name: fig.helm-nrss
    [[file:./img/readme-nrss.png]]
 
    Helm provides many useful features. Pressing =M-<up>=, displays additional
    information, such as =To=, =Cc= fields if available, in multi-line format:
-   #+name: fig:helm-mocky01
+   #+name: fig.helm-mocky03
    [[file:./img/readme-Mocky-03.png]]
 
    Helm has many features. It is worth checking the helm manual (=C-h m=). It is
    beyond this README to provide detailed info on Helm.
+
+** Edititng notes
+
+   This is a new functionality in =gnus-notes=. Now the user can edit the display
+   string. This is handy when the user doesn't like the something about the display
+   stirng, such as:
+   - the name may be long and would like to shorten it.
+   - description more concise or more descriptive.
+   - too much whitespace.
+   - etc.
 
 ** Actions
    :PROPERTIES:
@@ -139,22 +149,23 @@
    :END:
 
    By default the following actions are available:
-   #+name: tbl:actions-default
+   #+name: tbl.actions-default
    #+caption: helm default actions
-   |--------+----------------------------+-------------------------------------------------------------------------------------|
-   | Key    | Action                     | Remarks                                                                             |
-   |--------+----------------------------+-------------------------------------------------------------------------------------|
-   | =[F1]= | Open article               | will open the article in gnus                                                       |
-   | =[F2]= | Reply (to) article         | ~Wide-reply-and-yank~ (~S W~)                                                       |
-   | =[F3]= | Show thread                | ~gnus-summary-refer-thread~ (~A T~)                                                 |
-   | =[F4]= | Copy org-link to kill ring | Create an org-link                                                                  |
-   | =[F5]= | Insert org-link            | Insert org-link at point in buffer                                                  |
-   | =[F6]= | Insert quick note          | Insert quick note at point in buffer                                                |
-   | =[F7]= | Remove marked article(s)   | Remove current article or multiple marked articles (C-<space>) from the gnus-notes. |
-   |        |                            | Gnus is not affected, this only affects the list.                                   |
-   | =[F8]= | Display BBDB entries       | Display BBDB buffer.                                                                |
-   | =[F9]= | Clear all                  | Start over. Clear ALL the articles on the list. Careful!                            |
-   |--------+----------------------------+-------------------------------------------------------------------------------------|
+   |---------+----------------------------+-------------------------------------------------------------------------------------|
+   | Key     | Action                     | Remarks                                                                             |
+   |---------+----------------------------+-------------------------------------------------------------------------------------|
+   | =[F1]=  | Open article               | will open the article in gnus                                                       |
+   | =[F2]=  | Reply (to) article         | ~Wide-reply-and-yank~ (~S W~)                                                       |
+   | =[F3]=  | Show thread                | ~gnus-summary-refer-thread~ (~A T~)                                                 |
+   | =[F4]=  | Edit display line          | User edit                                                                           |
+   | =[F5]=  | Copy org-link to kill ring | Create an org-link                                                                  |
+   | =[F6]=  | Insert org-link            | Insert org-link at point in buffer                                                  |
+   | =[F7]=  | Insert quick note          | Insert quick note at point in buffer                                                |
+   | =[F8]=  | Remove marked article(s)   | Remove current article or multiple marked articles (C-<space>) from the gnus-notes. |
+   |         |                            | Gnus is not affected, this only affects the list.                                   |
+   | =[F9]=  | Display BBDB entries       | Display BBDB buffer.                                                                |
+   | =[F10]= | Clear all                  | Start over. Clear ALL the articles on the list. Careful!                            |
+   |---------+----------------------------+-------------------------------------------------------------------------------------|
 
    Applying any of the actions, will close the helm buffer. You can get back by
    restarting =helm-gnus-notes= or resuming with =helm-resume= (=C-x c b=).
@@ -167,7 +178,7 @@
     Gnus-notes provides a hydra, to select from a number of available persistent
     actions, a mix of helm configuration items and actions on the articles:
 
-    #+name: fig:persistent-actions
+    #+name: fig.persistent-actions
     [[file:./img/readme-persistent.png]]
 
 * Org integration
@@ -191,7 +202,7 @@
 
    The user is presented with a choice menu (another hydra!) on what to do:
 
-  #+name: fig:hydra-current-heading
+  #+name: fig.hydra-current-heading
   [[file:img/readme-org-current-heading.png]]
 
   The options have the following meaning:
@@ -210,8 +221,8 @@
   3. The user supplied text notes.
 
   Where the note is placed depends on the variables =org-log-into-drawer=. By
-  default notes are stored in the =LOGBOOK= drawer. The user may want to customize,
-  to place the note outside the drawer.
+  default notes are stored in the =LOGBOOK= drawer. The user may want to customize
+  org-mode, to place the note outside the drawer.
 
 ** Reading in Gnus
 
@@ -274,13 +285,13 @@
 
    As mentioned above, gnus-notes tracks Gnus. It does not know of any actions
    performed outside of Gnus. This means that any actions such as moving, deleting
-   performed using the web-interface to your imap email, will not be reflected in
-   gnus-notes. So, for example, gnus-notes may display the wrong group for an email
-   that was moved using the web-interface.
+   performed using a web-interface to your imap email or other imap client, will not
+   be reflected in gnus-notes. So, for example, gnus-notes may display the wrong
+   group for an email that was moved using another client.
 
 * License
   This work is distributed under the terms of the Gnu General Public License Version
-  3 or later. See [[LICENSE][LICENSE]].
+  3 or later. See [[file:./LICENSE][LICENSE]].
 * Emacs                                                   :noexport:comment:
 
 #  LocalWords:  README BBDB subtree

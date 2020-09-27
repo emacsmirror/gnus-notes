@@ -220,6 +220,13 @@ display-name."
             (cons 'recipients recipients)
             (cons 'references (mail-header-references article-header)))))
 
+(defun gnus-notes--article-display-line-edit (artdata)
+  "User edit the display line.
+Have the user edit the article ARTDATA display line, keeping
+string properties."
+  (let ((minibuffer-allow-text-properties t))
+    (setf (nth 0 artdata) (read-string "Edit line:" (car artdata)))))
+
 (defun gnus-notes--article-display-prefix (sender &optional recipients)
   "Display the proper article prefix based on article SENDER and RECIPIENTS."
   (if (string-match (gnus-ignored-from-addresses) sender)

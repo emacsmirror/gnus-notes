@@ -199,33 +199,89 @@ display-name."
           name)))))
 
 (defun gnus-notes--get-article-data ()
-    "Get the article data used for `gnus-notes' based on `gnus-summary-article-header'."
-    (let* ((article-header (gnus-summary-article-header))
-           (date  (gnus-notes-date-format (mail-header-date article-header)))
-           (subject (mail-header-subject article-header))
-           (author (mail-header-from article-header))
-           (recipients (mail-header-extra article-header)))
-      (dolist (r recipients)
-        (setcdr r (rfc2047-decode-address-string (cdr r))))
-      (list (format "%s%s: %s \t%s"
-                    (gnus-notes--article-display-prefix author recipients)
-                    (propertize (gnus-notes--article-display-name author recipients) 'face 'bold)
-                    subject
-                    (propertize date 'face 'gnus-notes-date-face))
-            (cons 'group gnus-newsgroup-name)
-            (cons 'message-id (mail-header-id article-header))
-            (cons 'date date)
-            (cons 'subject subject)
-            (cons 'sender author)
-            (cons 'recipients recipients)
-            (cons 'references (mail-header-references article-header)))))
+  "Get the article data used for `gnus-notes'.
+Data extracted based on `gnus-summary-article-header'."
+  (let ((article-header (gnus-summary-article-header)))
+    (gnus-notes--article-create
+     (mail-header-from article-header)                          ; author
+     (mail-header-extra article-header)                         ; recipients
+     (mail-header-subject article-header)                       ; subject
+     (gnus-notes-date-format (mail-header-date article-header)) ; date
+     gnus-newsgroup-name                                        ; group
+     (mail-header-id article-header)                            ; msgid
+     (mail-header-extra article-header))))                      ; references
+
+(defun gnus-notes--article-create (author recipients subject date group msgid references
+                                          &optional inreplyto)
+  "Create a list for an article item.
+Arguments DISPLAY-LINE, AUTHOR, RECIPIENTS, SUBJECT, DATE, GROUP,
+MSGID, RECIPIENTS, REFERENCES for the article note data.
+Optional INREPLYTO."
+  (dolist (r recipients)
+    (setcdr r (rfc2047-decode-address-string (cdr r))))
+  (list
+   (gnus-notes--article-display-line author recipients subject date)
+   (cons 'group group)
+   (cons 'message-id msgid)
+   (cons 'date date)
+   (cons 'subject subject)
+   (cons 'sender author)
+   (cons 'recipients recipients)
+   (cons 'references references)
+   (cons 'in-reply-to inreplyto)))
 
 (defun gnus-notes--article-display-line-edit (artdata)
   "User edit the display line.
 Have the user edit the article ARTDATA display line, keeping
 string properties."
+  (nconc artdata (list (cons 'date-edit (format-time-string gnus-notes-format-time-string))))
   (let ((minibuffer-allow-text-properties t))
-    (setf (nth 0 artdata) (read-string "Edit line:" (car artdata)))))
+    (setf (nth 0 artdata) (read-string "Edit line: " (car artdata))))
+  (gnus-notes--crumb-save artdata 'edt))
+
+(defun gnus-notes--article-display-line (author recipients subject date)
+  "Return the article display line."
+  (format "%s%s: %s \t%s"
+          (gnus-notes--article-display-prefix author recipients)
+          (propertize (gnus-notes--article-display-name author recipients) 'face 'bold)
+          subject
+          (propertize date 'face 'gnus-notes-date-face)))
+
+(defun gnus-notes--article-display-line-new ()
+  "Return the article display line."
+  )
+;;
+;; Add display-line-format customizations
+;;
+(defvar gnus-notes-display-line-format "%t%N: %30S \t%D %[%G%]"
+  "The format specification for the gnus-notes display line.
+Similar in concept to the `gnus-summary-line-format' which
+controls the display of lines in a Gnus-Summary buffer. This
+variables controls for the display string for each gnus-note.
+The recognized symbols are:
+
+%t    recipient prefix,          see `gnus-summary-to-prefix'
+%N    display Name.
+%S    Subject of article.
+%D    Date of article,           see `gnus-notes-date-format'
+%G    full gnus-Group name       nnimap+proton:Hobbies, nrss:xkcd
+%g    abbreviated Group name,    Hobbies,               xkcd
+%s    Group name prefix          nnimap+proton,         nrss
+
+A number can be placed between the % and the letter to indicate
+the maximum string length for the entry. If the number is
+preceded with a 0, it forces size to the full numerical value
+with blanks.")
+
+(defun gnus-notes-display-line-format-alist ()
+  "A format specifications alist for use in `gnus-notes-display-line-format'."
+  '((?t prefix)
+    (?N name-display)
+    (?S subject)
+    (?D show-date)
+    (?G group-name-full)
+    (?g group-name-abbrev)
+    (?s group-prefix)))
 
 (defun gnus-notes--article-display-prefix (sender &optional recipients)
   "Display the proper article prefix based on article SENDER and RECIPIENTS."
@@ -477,12 +533,29 @@ to find any more matches."
               (equal value (alist-get prop item)))
             gnus-notes--articles-list))
 
-(defun gnus-notes-find-message-id (message-id)
-  "Search the gnus-notes articles data by MESSAGE-ID.
+(defun gnus-note-find-prop-position (prop value)
+  "Find the article position with the property value given.
+Find in `gnus-notes--articles-list' if there is a property PROP equal to VALUE.
+Returns the article position when a match is found. It does not try
+to find any more matches."
+  (cl-position value gnus-notes--articles-list
+               :key (lambda (x) (alist-get prop x))
+               :test #'string-equal))
+
+(defun gnus-notes-find-message-id (msgid)
+  "Search the `gnus-notes articles' data by message-id MSGID.
 Returns the first article in `gnus-notes--articles-list' that
-matches the MESSAGE-ID provided. A convenience wrapper for
+matches the message-id provided. A convenience wrapper for
 `gnus-notes-find-prop'."
-  (gnus-notes-find-prop 'message-id  message-id))
+  (gnus-notes-find-prop 'message-id  msgid))
+
+(defun gnus-notes-find-message-id-position (msgid)
+  "Find the article position with the message-id MSGID.
+A convenience wrapper on `gnus-note-find-prop-position', as
+searching for message-id is a frequent action."
+  (cl-position msgid gnus-notes--articles-list
+               :key (lambda (x) (alist-get 'message-id x))
+               :test #'string-equal))
 
 (defun gnus-notes-find-message-ids-list (msgids-list)
   "Search gnus-notes articles for MSGIDS-LIST.
@@ -490,12 +563,6 @@ Returns the list of articles in `gnus-notes--articles-list' that
 match the list of message-id provided. MSGIDS-LIST is a list of
 article message-ids."
   (mapcar #'gnus-notes-find-message-id msgids-list))
-
-(defun gnus-notes-find-article (artdata)
-  "Search the gnus-notes articles list for ARTDATA article.
-Returns the first article in `gnus-notes--articles-list' that
-matches the message-id of the ARTDATA article argument."
-  (gnus-notes-find-message-id (alist-get 'message-id artdata)))
 
 (defun gnus-notes-add-to-list (artdata &optional no-crumb-save)
   "Add the ARTDATA article data to the articles list.
@@ -506,9 +573,17 @@ non-nil, will not save the article data to a crumb file. See
 format."
   (when artdata
     (unless (gnus-notes-find-message-id (alist-get 'message-id artdata))
-      (push artdata gnus-notes--articles-list)
-      (unless no-crumb-save
-        (gnus-notes--crumb-save artdata 'new)))))
+      (gnus-notes-push artdata no-crumb-save))))
+
+(defun gnus-notes-push (artdata &optional no-crumb-save)
+  "Push the ARTDATA article to the articles list.
+Push directly without checking if the messsage-id already exists
+in `gnus-notes--articles-list'. Should be used only when there is
+certainty the article is new. Saves a scan of the list. Will
+always save a crumb, except for testing."
+  (push artdata gnus-notes--articles-list)
+  (unless no-crumb-save
+    (gnus-notes--crumb-save artdata 'new)))
 
 (defun gnus-notes--crumb-filename (type)
   "Generate a full path filename for an article crumb.
@@ -537,6 +612,7 @@ actions."
        ((string-match-p "-new.el$" crumb) (gnus-notes-load-crumb-new crumb))
        ((string-match-p "-upd.el$" crumb) (gnus-notes-load-crumb-upd crumb))
        ((string-match-p "-del.el$" crumb) (gnus-notes-load-crumb-del crumb))
+       ((string-match-p "-edt.el$" crumb) (gnus-notes-load-crumb-edt crumb))
        (t (cl-decf icount)
           (message "Warning: found bad crumb: %s" (file-name-nondirectory crumb))))
       (delete-file crumb))))
@@ -557,8 +633,25 @@ Pass non-nil for the optional argument to
 crumb."
   (let ((article (gnus-notes--read-file-contents crumb-file)))
     (gnus-notes-update-message-id (alist-get 'message-id article)
-                                   (alist-get 'group article)
-                                   t)))
+                                  (alist-get 'group article)
+                                  t)))
+
+(defun gnus-notes-load-crumb-edt (crumb-file)
+  "Use the elisp data in CRUMB-FILE to update `gnus-notes--articles-list'.
+CRUMB-FILE is the full file path to a crumb file of type edit.
+Pass non-nil not to save another crumb."
+  (gnus-notes-edit-article
+   (gnus-notes--read-file-contents crumb-file) t))
+
+(defun gnus-notes-edit-article (article &optional no-crumb-save)
+  "Update the edited article in `gnus-notes--articles-list'.
+The Gnus article has been edited, with all data in ARTICLE.
+Set NO-CRUMB-SAVE non-nil to skip saving a crumb."
+  (let ((pos (gnus-notes-find-message-id-position (alist-get 'message-id article))))
+    (when pos
+      (setf (nth pos gnus-notes--articles-list) article)
+      (unless no-crumb-save
+        (gnus-notes--crumb-save article 'edt)))))
 
 (defun gnus-notes-load-crumb-del (crumb-file)
   "Use CRUMB-FILE to delete an item in `gnus-notes--articles-list'.
@@ -572,7 +665,7 @@ crumb."
 
 (defun gnus-notes--crumb-save (artdata type)
   "Backup single article data until the next save.
-TYPE should be one of 'new, 'upd or 'del.
+TYPE should be one of 'new, 'upd, 'del or 'edt.
 ARTDATA is an alist of the article data."
   (with-temp-file (gnus-notes--crumb-filename type)
     (prin1 artdata (current-buffer))))
@@ -636,33 +729,20 @@ FILE is the full file path."
 Is run from `message-sent-hook'. A alist of the message header
 data should be available on `gnus-notes--temp-message-headers'."
   (interactive)
-  (let* ((hdrs gnus-notes--temp-message-headers)
-         (date (gnus-notes-date-format (alist-get 'date hdrs)))
-         (author (rfc2047-decode-address-string (or (alist-get 'from hdrs) "")))
-         (recipients (rassq-delete-all nil
-                                       (list (cons 'Newsgroups (alist-get 'newsgroups hdrs))
-                                             (cons 'To (alist-get 'to hdrs))
-                                             (cons 'Cc (alist-get 'cc hdrs)))))
-         (to-first (car (bbdb-split "," (or (alist-get 'To recipients) "")))))
-    (dolist (r recipients)
-      (setcdr r (rfc2047-decode-address-string (cdr r))))
-    ;; This is a new message, can directly add to list... but better be safe.
-    (gnus-notes-add-to-list
-     (list (format "%s%s: %s \t%s"
-                   (if (alist-get 'Newsgroups recipients)
-                       gnus-summary-newsgroup-prefix
-                     gnus-summary-to-prefix)
-                   (propertize (gnus-notes-get-email-name to-first t) 'face 'bold)
-                   (alist-get 'subject hdrs)
-                   (propertize date 'face 'gnus-notes-date-face))
-           (cons 'group (alist-get 'gcc hdrs))
-           (cons 'message-id (alist-get 'message-id hdrs))
-           (cons 'date  date)
-           (cons 'subject (alist-get 'subject  hdrs))
-           (cons 'sender author)
-           (cons 'recipients recipients)
-           (cons 'references (alist-get 'references hdrs))
-           (cons 'in-reply-to (alist-get 'in-reply-to hdrs))))))
+  (let ((hdrs gnus-notes--temp-message-headers))
+    (gnus-notes-push                    ; a new message, directly push to list
+     (gnus-notes--article-create
+      (rfc2047-decode-address-string (or (alist-get 'from hdrs) "")) ; author
+      (rassq-delete-all nil
+                        (list (cons 'Newsgroups (alist-get 'newsgroups hdrs))
+                              (cons 'To (alist-get 'to hdrs))
+                              (cons 'Cc (alist-get 'cc hdrs)))) ; recipients
+      (alist-get 'subject hdrs)                                 ; subject
+      (gnus-notes-date-format (alist-get 'date hdrs))           ; date
+      (alist-get 'gcc hdrs)                                     ; group
+      (alist-get 'message-id hdrs)                              ; msgid
+      (alist-get 'references hdrs)                              ; references
+      (alist-get 'in-reply-to hdrs)))))
 
 (defun gnus-notes--get-message-data ()
   "Get the headers from a new outgoing message.

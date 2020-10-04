@@ -93,7 +93,7 @@
 (require 'bbdb-mua)
 
 (declare-function gnus-notes-org-init "gnus-notes-org" nil)
-(declare-function org-remove-double-quotes "ext:org-macs" (string))
+(declare-function org-strip-quotes "ext:org-macs" (string))
 (declare-function org-gnus-follow-link (if (featurep 'ol-gnus) "ext:ol-gnus"  "ext:org-gnus") (&optional group article))
 
 (defgroup gnus-notes nil
@@ -195,7 +195,7 @@ display-name."
       (let ((name (string-join (butlast x) " ")))
         (if (and decode
                  (string= "=?" (substring name 0 2)))
-            (org-remove-double-quotes (rfc2047-decode-address-string name))
+            (org-strip-quotes (rfc2047-decode-address-string name))
           name)))))
 
 (defun gnus-notes--get-article-data ()

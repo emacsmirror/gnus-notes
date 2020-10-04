@@ -93,8 +93,8 @@
 (require 'bbdb-mua)
 
 (declare-function gnus-notes-org-init "gnus-notes-org" nil)
-(declare-function org-strip-quotes "ext:org-macs" (string))
-(declare-function org-gnus-follow-link (if (featurep 'ol-gnus) "ext:ol-gnus" "ext:org-gnus") (&optional group article))
+(declare-function org-remove-double-quotes "ext:org-macs" (string))
+(declare-function org-gnus-follow-link (if (featurep 'ol-gnus) "ext:ol-gnus"  "ext:org-gnus") (&optional group article))
 
 (defgroup gnus-notes nil
   "Keep handy notes of gnus articles."
@@ -195,7 +195,7 @@ display-name."
       (let ((name (string-join (butlast x) " ")))
         (if (and decode
                  (string= "=?" (substring name 0 2)))
-            (org-strip-quotes (rfc2047-decode-address-string name))
+            (org-remove-double-quotes (rfc2047-decode-address-string name))
           name)))))
 
 (defun gnus-notes--get-article-data ()
@@ -248,8 +248,8 @@ string properties."
           (propertize date 'face 'gnus-notes-date-face)))
 
 (defun gnus-notes--article-display-line-new ()
-  "Return the article display line."
-  )
+  "Return the article display line.")
+
 ;;
 ;; Add display-line-format customizations
 ;;
@@ -443,7 +443,7 @@ link to the article. The prefix default is \"- \"."
               (org-end-of-line))
             (org-insert-item)
             (insert (gnus-notes-quick-note artdata "")))
-        (org-return-indent)
+        (org-return t)
         (insert (gnus-notes-quick-note artdata)))
     (insert (gnus-notes-quick-note artdata " - "))))
 
@@ -533,7 +533,7 @@ to find any more matches."
               (equal value (alist-get prop item)))
             gnus-notes--articles-list))
 
-(defun gnus-note-find-prop-position (prop value)
+(defun gnus-notes-find-prop-position (prop value)
   "Find the article position with the property value given.
 Find in `gnus-notes--articles-list' if there is a property PROP equal to VALUE.
 Returns the article position when a match is found. It does not try
@@ -551,7 +551,7 @@ matches the message-id provided. A convenience wrapper for
 
 (defun gnus-notes-find-message-id-position (msgid)
   "Find the article position with the message-id MSGID.
-A convenience wrapper on `gnus-note-find-prop-position', as
+A convenience wrapper on `gnus-notes-find-prop-position', as
 searching for message-id is a frequent action."
   (cl-position msgid gnus-notes--articles-list
                :key (lambda (x) (alist-get 'message-id x))

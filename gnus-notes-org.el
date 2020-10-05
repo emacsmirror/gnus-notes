@@ -40,8 +40,7 @@
 (require 'helm)
 (require 'hydra)
 (require 'bbdb-mua)
-(unless (require 'ol-gnus nil 'noerror)
-  (require 'org-gnus))
+(require 'ol-gnus)
 (require 'org-agenda)
 (require 'org-capture)
 (require 'async)                        ; required by helm

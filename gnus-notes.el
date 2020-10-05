@@ -230,6 +230,15 @@ Optional INREPLYTO."
    (cons 'references references)
    (cons 'in-reply-to inreplyto)))
 
+(defun gnus-notes--article-display-line (author recipients subject date)
+  "Return the article display line.
+Arguments AUTHOR, RECIPIENTS, SUBJECT, DATE must be provided."
+  (format "%s%s: %s \t%s"
+          (gnus-notes--article-display-prefix author recipients)
+          (propertize (gnus-notes--article-display-name author recipients) 'face 'bold)
+          subject
+          (propertize date 'face 'gnus-notes-date-face)))
+
 (defun gnus-notes--article-display-line-edit (artdata)
   "User edit the display line.
 Have the user edit the article ARTDATA display line, keeping
@@ -238,50 +247,6 @@ string properties."
   (let ((minibuffer-allow-text-properties t))
     (setf (nth 0 artdata) (read-string "Edit line: " (car artdata))))
   (gnus-notes--crumb-save artdata 'edt))
-
-(defun gnus-notes--article-display-line (author recipients subject date)
-  "Return the article display line."
-  (format "%s%s: %s \t%s"
-          (gnus-notes--article-display-prefix author recipients)
-          (propertize (gnus-notes--article-display-name author recipients) 'face 'bold)
-          subject
-          (propertize date 'face 'gnus-notes-date-face)))
-
-(defun gnus-notes--article-display-line-new ()
-  "Return the article display line.")
-
-;;
-;; Add display-line-format customizations
-;;
-(defvar gnus-notes-display-line-format "%t%N: %30S \t%D %[%G%]"
-  "The format specification for the gnus-notes display line.
-Similar in concept to the `gnus-summary-line-format' which
-controls the display of lines in a Gnus-Summary buffer. This
-variables controls for the display string for each gnus-note.
-The recognized symbols are:
-
-%t    recipient prefix,          see `gnus-summary-to-prefix'
-%N    display Name.
-%S    Subject of article.
-%D    Date of article,           see `gnus-notes-date-format'
-%G    full gnus-Group name       nnimap+proton:Hobbies, nrss:xkcd
-%g    abbreviated Group name,    Hobbies,               xkcd
-%s    Group name prefix          nnimap+proton,         nrss
-
-A number can be placed between the % and the letter to indicate
-the maximum string length for the entry. If the number is
-preceded with a 0, it forces size to the full numerical value
-with blanks.")
-
-(defun gnus-notes-display-line-format-alist ()
-  "A format specifications alist for use in `gnus-notes-display-line-format'."
-  '((?t prefix)
-    (?N name-display)
-    (?S subject)
-    (?D show-date)
-    (?G group-name-full)
-    (?g group-name-abbrev)
-    (?s group-prefix)))
 
 (defun gnus-notes--article-display-prefix (sender &optional recipients)
   "Display the proper article prefix based on article SENDER and RECIPIENTS."
@@ -579,8 +544,8 @@ format."
   "Push the ARTDATA article to the articles list.
 Push directly without checking if the messsage-id already exists
 in `gnus-notes--articles-list'. Should be used only when there is
-certainty the article is new. Saves a scan of the list. Will
-always save a crumb, except for testing."
+certainty the article is new. Saves a scan of the list.
+Optional argument NO-CRUMB-SAVE when non-nil will skip saving a crumb file."
   (push artdata gnus-notes--articles-list)
   (unless no-crumb-save
     (gnus-notes--crumb-save artdata 'new)))

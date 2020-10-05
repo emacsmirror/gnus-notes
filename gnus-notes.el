@@ -5,7 +5,7 @@
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; URL: https://github.com/deusmax/gnus-notes
 ;; Version: 0.3.1
-;; Package-Requires: ((emacs "25.1") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
+;; Package-Requires: ((emacs "27.1") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
 ;; Keywords: convenience, mail, bbdb, gnus, helm, org, hydra
 
 ;; This file is not part of GNU Emacs.
@@ -85,8 +85,7 @@
 
 (require 'gnus)
 (require 'gnus-sum)
-(unless (require 'ol-gnus nil 'noerror)
-  (require 'org-gnus))
+(require 'ol-gnus)
 (require 'rfc2047)
 (require 'subr-x)
 (require 'helm-lib)
@@ -94,7 +93,7 @@
 
 (declare-function gnus-notes-org-init "gnus-notes-org" nil)
 (declare-function org-strip-quotes "ext:org-macs" (string))
-(declare-function org-gnus-follow-link (if (featurep 'ol-gnus) "ext:ol-gnus"  "ext:org-gnus") (&optional group article))
+(declare-function org-gnus-follow-link "ext:ol-gnus" (&optional group article))
 
 (defgroup gnus-notes nil
   "Keep handy notes of gnus articles."

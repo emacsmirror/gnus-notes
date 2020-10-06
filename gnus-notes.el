@@ -218,16 +218,18 @@ MSGID, RECIPIENTS, REFERENCES for the article note data.
 Optional INREPLYTO."
   (dolist (r recipients)
     (setcdr r (rfc2047-decode-address-string (cdr r))))
-  (list
-   (gnus-notes--article-display-line author recipients subject date)
-   (cons 'group group)
-   (cons 'message-id msgid)
-   (cons 'date date)
-   (cons 'subject subject)
-   (cons 'sender author)
-   (cons 'recipients recipients)
-   (cons 'references references)
-   (cons 'in-reply-to inreplyto)))
+  (let ((res (list
+              (gnus-notes--article-display-line author recipients subject date)
+              (cons 'group group)
+              (cons 'message-id msgid)
+              (cons 'date date)
+              (cons 'subject subject)
+              (cons 'sender author)
+              (cons 'recipients recipients))))
+    (dolist (x
+             (list (cons 'references references) (cons 'in-reply-to inreplyto))
+             res)
+      (when (cdr x) (nconc res (list x))))))
 
 (defun gnus-notes--article-display-line (author recipients subject date)
   "Return the article display line.

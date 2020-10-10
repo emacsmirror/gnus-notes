@@ -285,7 +285,7 @@ arguments are passed by gnus."
   (when (eq action 'move)
     (if to-group
         (gnus-notes-update-message-id (mail-header-id article) to-group)
-      (message-box "Move article to EmptyGroup! Probable Error!\n"))))
+      (error "%s" "Gnus-notes: attempt to move article to EmptyGroup"))))
 
 (defun gnus-notes--track-delete-article (action article _from-group &rest _rest)
   "Track interactive user deletion of articles.

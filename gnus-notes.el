@@ -220,7 +220,7 @@ Optional INREPLYTO."
     (setcdr r (rfc2047-decode-address-string (cdr r))))
   (let ((res (list
               (gnus-notes--article-display-line author recipients subject date)
-              (cons 'group group)
+              (cons 'group (or group "missing"))
               (cons 'message-id msgid)
               (cons 'date date)
               (cons 'subject subject)

@@ -128,7 +128,7 @@ returns a cons cell (name . item), where name is the article
 display text."
   (cons (concat (car item)
                 " ["
-                (propertize (gnus-notes-decode-utf8 (alist-get 'group item))
+                (propertize (gnus-notes-decode-utf8 (or (alist-get 'group item) "unknown"))
                             'face 'gnus-notes-group-face)
                 "]")
         item))

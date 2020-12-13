@@ -4,7 +4,7 @@
 
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; URL: https://github.com/deusmax/gnus-notes
-;; Version: 0.3.1
+;; Version: 0.4.0
 ;; Keywords: convenience, mail, bbdb, gnus, helm, org, hydra
 
 ;; This file is not part of GNU Emacs.
@@ -245,6 +245,7 @@ Also a number of possible actions are defined."
                              ("Reply article"              . gnus-notes--reply-article-wide-yank)
                              ("Show thread"                . gnus-notes--show-article-thread)
                              ("Edit display line"          . gnus-notes--article-display-line-edit)
+                             ("Edit group"                 . gnus-notes--article-group-edit)
                              ("Copy org link to kill ring" . gnus-notes-kill-new-org-link)
                              ("Insert org link"            . gnus-notes-insert-org-link)
                              ("Insert quick-note"          . gnus-notes-insert-quick-note)

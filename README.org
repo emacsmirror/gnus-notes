@@ -23,8 +23,8 @@
   gnus. When an article is read, it adds a quick note. It removes notes of deleted
   articles or the ones expunged by gnus.
 
-  Providing a good level of Gnus-Org integration. It will enhance your Gnus
-  experience. Simply, that's all.
+  Providing a good level of Gnus-Org integration. It will complement your Gnus
+  experience.
 
   This simplicity allows the user to add and remove articles to gnus-notes, stress
   free. Gnus-notes can be used without having to start gnus.
@@ -136,12 +136,20 @@
 ** Edititng notes
 
    This is a new functionality in =gnus-notes=. Now the user can edit the display
-   string. This is handy when the user doesn't like the something about the display
-   stirng, such as:
+   string or the article group. This is handy when the user doesn't like something
+   about the display string, such as:
    - the name may be long and would like to shorten it.
-   - description more concise or more descriptive.
+   - wants a more concise or descriptive line.
    - too much whitespace.
    - etc.
+
+   As for the article group, gnus-notes tries hard to track it and keep it up-to
+   date. When the article is handled outside of gnus-notes, such as when reading
+   email using a web-interface, this tracking is not possible. The group value may
+   have changed and could be wrong. Manually editing the group value will help
+   provide links (org-style gnus-links) to the article, that are correct and work as
+   expected. Selecting the group name using completion is not implemented yet and is
+   pending.
 
 ** Actions
    :PROPERTIES:
@@ -158,13 +166,14 @@
    | =[F2]=  | Reply (to) article         | ~Wide-reply-and-yank~ (~S W~)                                                       |
    | =[F3]=  | Show thread                | ~gnus-summary-refer-thread~ (~A T~)                                                 |
    | =[F4]=  | Edit display line          | User edit                                                                           |
-   | =[F5]=  | Copy org-link to kill ring | Create an org-link                                                                  |
-   | =[F6]=  | Insert org-link            | Insert org-link at point in buffer                                                  |
-   | =[F7]=  | Insert quick note          | Insert quick note at point in buffer                                                |
-   | =[F8]=  | Remove marked article(s)   | Remove current article or multiple marked articles (C-<space>) from the gnus-notes. |
+   | =[F5]=  | Edit Group                 | User edit article group                                                             |
+   | =[F6]=  | Copy org-link to kill ring | Create an org-link                                                                  |
+   | =[F7]=  | Insert org-link            | Insert org-link at point in buffer                                                  |
+   | =[F8]=  | Insert quick note          | Insert quick note at point in buffer                                                |
+   | =[F9]=  | Remove marked article(s)   | Remove current article or multiple marked articles (C-<space>) from the gnus-notes. |
    |         |                            | Gnus is not affected, this only affects the list.                                   |
-   | =[F9]=  | Display BBDB entries       | Display BBDB buffer.                                                                |
-   | =[F10]= | Clear all                  | Start over. Clear ALL the articles on the list. Careful!                            |
+   | =[F10]= | Display BBDB entries       | Display BBDB buffer.                                                                |
+   | =[F11]= | Clear all                  | Start over. Clear ALL the articles on the list. Careful!                            |
    |---------+----------------------------+-------------------------------------------------------------------------------------|
 
    Applying any of the actions, will close the helm buffer. You can get back by

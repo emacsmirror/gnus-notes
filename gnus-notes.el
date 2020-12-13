@@ -4,7 +4,7 @@
 
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; URL: https://github.com/deusmax/gnus-notes
-;; Version: 0.3.1
+;; Version: 0.4.0
 ;; Package-Requires: ((emacs "27.1") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
 ;; Keywords: convenience, mail, bbdb, gnus, helm, org, hydra
 
@@ -244,10 +244,10 @@ Arguments AUTHOR, RECIPIENTS, SUBJECT, DATE must be provided."
   "User edit the display line.
 Have the user edit the article ARTDATA display line, keeping
 string properties."
-  (nconc artdata (list (cons 'date-edit (format-time-string gnus-notes-format-time-string))))
-  (let ((minibuffer-allow-text-properties t))
-    (setf (nth 0 artdata) (read-string "Edit line: " (car artdata))))
-  (gnus-notes--crumb-save artdata 'edt))
+  (let ((minibuffer-allow-text-properties t)
+        (line-old (car artdata)))
+    (gnus-notes--article-update-key artdata 'displayline
+                                    (read-string "Edit line: " line-old))))
 
 (defun gnus-notes--article-display-prefix (sender &optional recipients)
   "Display the proper article prefix based on article SENDER and RECIPIENTS."
@@ -269,6 +269,52 @@ fall back to a newsgroup name, if available."
                                                "")))
                      "")))
   (gnus-notes-get-email-name sender t))
+
+(defun gnus-notes--article-group-edit (artdata)
+  "User edit the article group.
+Have the user edit the article ARTDATA group name. Normally,
+gnus-notes keeps track of the article group, but it may be
+inaccurate if changed outside of gnus-notes."
+  (let ((group-old (alist-get 'group artdata))
+        (minibuffer-allow-text-properties nil))
+    (gnus-notes--article-update-key artdata 'group
+                                    (read-string "Edit line: " group-old))))
+
+(defun gnus-notes--article-update-key (artdata key value-new &optional no-crumb-save)
+  "Update article ARTDATA item KEY with VALUE-NEW.
+Updates article values and saves a relevant edit crumb
+file. For the display line, which is the first item on the
+article data list without a key, a pseudo key of 'displayline is
+recognized for special handling.
+Optional NO-CRUMB-SAVE set non-nil to skip saving a crumb file of this update."
+  (when value-new                       ; no empty values
+    (unless (string= (gnus-notes-article-get-key artdata key) value-new)
+      (gnus-notes-article-set-key artdata key value-new)
+      (unless no-crumb-save
+        (gnus-notes-article-set-key artdata
+                                    'date-edit
+                                    (format-time-string
+                                     gnus-notes-format-time-string))
+        (gnus-notes--crumb-save artdata 'edt)))))
+
+(defun gnus-notes-article-get-key (artdata key)
+  "Get the articel ARTDATA value for KEY.
+Article data is a alist, except for the first item which is the
+display line. Function handles the display line differently by
+recognizing the pseudo-key 'displayline."
+  (if (eq key 'displayline)
+      (car artdata)
+    (alist-get key artdata)))
+
+(defun gnus-notes-article-set-key (artdata key value)
+  "Set ARTDATA alist KEY to VALUE.
+Special handling for the setting of key 'displayline."
+  (when value
+    (if (eq key 'displayline)           ; special case
+        (setf (nth 0 artdata) value)
+      (if (alist-get key artdata)       ; key already exists
+          (setf (alist-get key artdata) value)
+        (nconc artdata (list (cons key value)))))))
 
 (defun gnus-notes--track-article ()
   "Store this article in the notes article list.

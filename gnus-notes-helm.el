@@ -106,13 +106,13 @@ SOURCE is the `helm' source. Both arguments are passed by `helm',
 when the function is called. Also the `helm' multi-line feature is
 turned on and off, as needed."
   (pcase gnus-notes-helm-display-extra
-    ('To (helm-attrset 'multiline nil source)
+    ('To (helm-set-attr 'multiline nil source)
          (mapcar #'gnus-notes-helm-candidates-display-to candidates))
-    ('Cc (helm-attrset 'multiline nil source)
+    ('Cc (helm-set-attr 'multiline nil source)
          (mapcar #'gnus-notes-helm-candidates-display-cc candidates))
-    ('Msgid (helm-attrset 'multiline nil source)
+    ('Msgid (helm-set-attr 'multiline nil source)
             (mapcar #'gnus-notes-helm-candidates-display-msgid candidates))
-    ('Orgid (helm-attrset 'multiline nil source)
+    ('Orgid (helm-set-attr 'multiline nil source)
             (mapcar #'gnus-notes-helm-candidates-display-orgid candidates))
     (_ (assq-delete-all 'multiline source)
        candidates)))

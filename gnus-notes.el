@@ -489,8 +489,8 @@ Set NO-CRUMB-SAVE non-nil to skip saving a crumb file."
     (when (= 1 (- l1 (length gnus-notes--articles-list)))
       (unless no-crumb-save (gnus-notes--crumb-save article 'del))
       (when print-msg
-        (gnus-message 4 "Removed 1 of 1 from gnus-notes articles")
-        (gnus-message 4 "Removed item: %s from gnus-notes articles" (car article))))))
+        (gnus-message 7 "Removed 1 of 1 from gnus-notes articles")
+        (gnus-message 7 "Removed item: %s from gnus-notes articles" (car article))))))
 
 (defun gnus-notes-forget (artdata &optional print-msg)
   "Remove ARTDATA Gnus article from `gnus-notes--articles-list'.
@@ -697,13 +697,13 @@ FILE is the full file path."
   (when gnus-notes-file
     (if (file-writable-p gnus-notes-file)
         (progn
-          (gnus-message 5 "Saving gnus-notes data to %s." gnus-notes-file)
+          (gnus-message 7 "Saving gnus-notes data to %s." gnus-notes-file)
           (with-temp-file gnus-notes-file
             (let ((print-level nil)
                   (print-length nil))
               (prin1 gnus-notes--articles-list (current-buffer))))
           (gnus-notes--crumbs-clear-all)
-          (gnus-message 5 "Saving gnus-notes data (%d items) done."
+          (gnus-message 7 "Saving gnus-notes data (%d items) done."
                         (length gnus-notes--articles-list)))
       (error "Error: can not save gnus-notes data to %s" gnus-notes-file))))
 
@@ -713,13 +713,13 @@ FILE is the full file path."
   (when gnus-notes-file
     (if (file-readable-p gnus-notes-file)
         (progn
-          (gnus-message 5 "Reading gnus-notes data from %s." gnus-notes-file)
+          (gnus-message 7 "Reading gnus-notes data from %s." gnus-notes-file)
           (setq gnus-notes--articles-list
                 (gnus-notes--read-file-contents gnus-notes-file))
-          (gnus-message 5 "Read %d item(s) from %s... done."
+          (gnus-message 7 "Read %d item(s) from %s... done."
                         (length gnus-notes--articles-list) gnus-notes-file)
           (let ((numcrumbs (gnus-notes--crumbs-load)))
-            (gnus-message 5 "Loaded %d item(s) gnus-notes crumbs found... done" numcrumbs)
+            (gnus-message 7 "Loaded %d item(s) gnus-notes crumbs found... done" numcrumbs)
             (when (> numcrumbs 0)
               (gnus-notes-save))))
       (error "Error: can not read gnus-notes data from %s" gnus-notes-file))))

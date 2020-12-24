@@ -144,6 +144,9 @@ keep the old format."
 (defvar gnus-notes--temp-message-headers nil
   "Internal variable; temporarily placing header data from an outgoing message.")
 
+(defvar gnus-notes--session nil
+  "Internal variable; is non-nil when gnus-notes is running.")
+
 (defmacro gnus-notes-rot1 (ilst)
   "Cycle left the list elements, return the first item.
 Argument ILST is the list to cycle its items."
@@ -778,7 +781,7 @@ ARTDATA is the gnus-notes article data."
            (substring (car artdata) 0 (length gnus-summary-to-prefix))))
 
 ;;
-;; starting gnus-notes
+;;;; start and stopping gnus-notes
 ;;
 (defun gnus-notes-init ()
   "Start Gnus Notes."
@@ -787,7 +790,31 @@ ARTDATA is the gnus-notes article data."
   (gnus-message 5 "Starting gnus-notes")
   (gnus-notes-add-hooks)
   (gnus-notes-org-init)
-  (gnus-notes-read))
+  (gnus-notes-read)
+  (setq gnus-notes--session (time-convert nil 'integer)))
+
+(defun gnus-notes-stop ()
+  "Stop updating articles to Gnus Notes.
+To resume updating gnus-notes, run `gnus-notes-init'. This
+function can be risky and should be used only when the user knows
+what he/she is doing and only temporarily.
+Users are discouraged from using. Users relying on this function
+are encouraged to open an issue for review of their use case.
+There may be a real feature needed to be implemented.
+This function may be removed at any time."
+  (interactive)
+  (gnus-notes-save)
+  (gnus-message 5 "Stopping gnus-notes")
+  (gnus-notes-remove-hooks)
+  (setq gnus-notes--session nil))
+
+(defun gnus-notes--session-p ()
+  "Return non-nil when a gnus-notes session is running.
+Ask the user to start a session, if one is not running."
+  (unless gnus-notes--session
+    (when (y-or-n-p "Start gnus-notes? ")
+      (gnus-notes-init)))
+  gnus-notes--session)
 
 (defun gnus-notes-check-files ()
   "Check for the gnus-notes directories.

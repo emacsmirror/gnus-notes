@@ -235,25 +235,26 @@ ARTDATA is the current article in the helm buffer."
   "Use `helm' to filter the Gnus notes articles.
 Also a number of possible actions are defined."
   (interactive)
-  (helm :sources (helm-build-sync-source "Gnus notes articles"
-                   :keymap gnus-notes-helm-map
-                   :candidates (lambda () (gnus-notes-helm-candidates gnus-notes--articles-list))
-                   :filtered-candidate-transformer 'gnus-notes-helm-candidate-transformer
-                   :persistent-action 'gnus-notes-helm-hydra-pa
-                   :persistent-help "quick actions"
-                   :action '(("Open article"               . gnus-notes--open-article)
-                             ("Reply article"              . gnus-notes--reply-article-wide-yank)
-                             ("Show thread"                . gnus-notes--show-article-thread)
-                             ("Edit display line"          . gnus-notes--article-display-line-edit)
-                             ("Edit group"                 . gnus-notes--article-group-edit)
-                             ("Copy org link to kill ring" . gnus-notes-kill-new-org-link)
-                             ("Insert org link"            . gnus-notes-insert-org-link)
-                             ("Insert quick-note"          . gnus-notes-insert-quick-note)
-                             ("Remove marked article(s)"   . gnus-notes-helm-forget)
-                             ("Display BBDB entries"       . gnus-notes-bbdb-display-all)
-                             ("Clear all"                  . gnus-notes-forget-all)))
-        :buffer "*helm gnus notes*"
-        :truncate-lines t))
+  (when (gnus-notes--session-p)
+    (helm :sources (helm-build-sync-source "Gnus notes articles"
+                     :keymap gnus-notes-helm-map
+                     :candidates (lambda () (gnus-notes-helm-candidates gnus-notes--articles-list))
+                     :filtered-candidate-transformer 'gnus-notes-helm-candidate-transformer
+                     :persistent-action 'gnus-notes-helm-hydra-pa
+                     :persistent-help "quick actions"
+                     :action '(("Open article"               . gnus-notes--open-article)
+                               ("Reply article"              . gnus-notes--reply-article-wide-yank)
+                               ("Show thread"                . gnus-notes--show-article-thread)
+                               ("Edit display line"          . gnus-notes--article-display-line-edit)
+                               ("Edit group"                 . gnus-notes--article-group-edit)
+                               ("Copy org link to kill ring" . gnus-notes-kill-new-org-link)
+                               ("Insert org link"            . gnus-notes-insert-org-link)
+                               ("Insert quick-note"          . gnus-notes-insert-quick-note)
+                               ("Remove marked article(s)"   . gnus-notes-helm-forget)
+                               ("Display BBDB entries"       . gnus-notes-bbdb-display-all)
+                               ("Clear all"                  . gnus-notes-forget-all)))
+          :buffer "*helm gnus notes*"
+          :truncate-lines t)))
 
 (provide 'gnus-notes-helm)
 ;;; gnus-notes-helm.el ends here

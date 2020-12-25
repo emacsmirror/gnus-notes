@@ -793,16 +793,16 @@ ARTDATA is the gnus-notes article data."
   (gnus-notes-read)
   (setq gnus-notes--session (time-convert nil 'integer)))
 
-(defun gnus-notes-stop ()
+(defun gnus-notes--stop ()
   "Stop updating articles to Gnus Notes.
 To resume updating gnus-notes, run `gnus-notes-init'. This
 function can be risky and should be used only when the user knows
 what he/she is doing and only temporarily.
-Users are discouraged from using. Users relying on this function
-are encouraged to open an issue for review of their use case.
-There may be a real feature needed to be implemented.
+Users are discouraged from using. Instead of relying on this
+function, users are encouraged to open an issue for review of
+their use case. There may be a real feature needed to be
+implemented.
 This function may be removed at any time."
-  (interactive)
   (gnus-notes-save)
   (gnus-message 5 "Stopping gnus-notes")
   (gnus-notes-remove-hooks)
@@ -812,7 +812,7 @@ This function may be removed at any time."
   "Return non-nil when a gnus-notes session is running.
 Ask the user to start a session, if one is not running."
   (unless gnus-notes--session
-    (when (y-or-n-p "Start gnus-notes? ")
+    (when (y-or-n-p "Start gnus-notes?")
       (gnus-notes-init)))
   gnus-notes--session)
 

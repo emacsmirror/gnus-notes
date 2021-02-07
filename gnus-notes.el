@@ -4,7 +4,7 @@
 
 ;; Author: Deus Max <deusmax@gmx.com>
 ;; URL: https://github.com/deusmax/gnus-notes
-;; Version: 0.4.0
+;; Version: 0.4.2
 ;; Package-Requires: ((emacs "27.1") (bbdb "3.1") (helm "3.1") (hydra "0.13.0") (org "8.3") (s "0.0") (lv "0.0") (async "1.9.1"))
 ;; Keywords: convenience, mail, bbdb, gnus, helm, org, hydra
 
@@ -410,15 +410,19 @@ Warn if MSG can't be deconstructed as expected."
 
 (defun gnus-notes--create-org-link (artdata)
   "Return an `org-mode' link to ARTDATA Gnus article."
-  (format "[[gnus:%s#%s][Email %s%s]]"
-          (alist-get 'group artdata)
-          (gnus-notes-string-unbracket (alist-get 'message-id artdata))
-          (if (gnus-notes-outgoing-message-p artdata)
-              ""
-            "from ")
-          (bbdb-string-trim
-           (replace-regexp-in-string "[][\t]" ""
-                                     (substring (car artdata) 0 48)))))
+  (let ((link-display (car artdata))
+        (link-display-cutoff 48))
+    (when (< (length link-display) link-display-cutoff)
+      (setq link-display-cutoff (length link-display)))
+    (format "[[gnus:%s#%s][Email %s%s]]"
+            (alist-get 'group artdata)
+            (gnus-notes-string-unbracket (alist-get 'message-id artdata))
+            (if (gnus-notes-outgoing-message-p artdata)
+                ""
+              "from ")
+            (bbdb-string-trim
+             (replace-regexp-in-string "[][\t]" ""
+                                       (substring link-display 0 link-display-cutoff))))))
 
 (defun gnus-notes-split-org-link-gnus (link)
   "Split a gnus article org LINK into its parts.

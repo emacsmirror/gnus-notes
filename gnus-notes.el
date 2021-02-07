@@ -105,7 +105,7 @@
   :group 'gnus-notes
   :type 'directory)
 
-(defcustom gnus-notes-file  (concat gnus-notes-top-dir "articles.el")
+(defcustom gnus-notes-file  (locate-user-emacs-file "gnus-notes/articles.el")
   "A file to save the gnus notes articles list data.
 Set to nil, for no article tracking between gnus sessions.
 Otherwise, best to keep this file under `gnus-notes-top-dir'."

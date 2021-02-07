@@ -412,8 +412,6 @@ Warn if MSG can't be deconstructed as expected."
   "Return an `org-mode' link to ARTDATA Gnus article."
   (let ((link-display (car artdata))
         (link-display-cutoff 48))
-    (when (< (length link-display) link-display-cutoff)
-      (setq link-display-cutoff (length link-display)))
     (format "[[gnus:%s#%s][Email %s%s]]"
             (alist-get 'group artdata)
             (gnus-notes-string-unbracket (alist-get 'message-id artdata))
@@ -422,7 +420,10 @@ Warn if MSG can't be deconstructed as expected."
               "from ")
             (bbdb-string-trim
              (replace-regexp-in-string "[][\t]" ""
-                                       (substring link-display 0 link-display-cutoff))))))
+                                       (substring link-display
+                                                  0
+                                                  (and (< link-display-cutoff (length link-display))
+                                                       link-display-cutoff)))))))
 
 (defun gnus-notes-split-org-link-gnus (link)
   "Split a gnus article org LINK into its parts.

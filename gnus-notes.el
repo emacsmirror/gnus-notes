@@ -105,14 +105,16 @@
   :group 'gnus-notes
   :type 'directory)
 
-(defcustom gnus-notes-file  (locate-user-emacs-file "gnus-notes/articles.el")
+(defcustom gnus-notes-file  (locate-user-emacs-file (concat gnus-notes-top-dir
+                                                            "articles.el"))
   "A file to save the gnus notes articles list data.
 Set to nil, for no article tracking between gnus sessions.
 Otherwise, best to keep this file under `gnus-notes-top-dir'."
   :group 'gnus-notes
   :type 'file)
 
-(defcustom gnus-notes-breadcrumbs-dir (concat gnus-notes-top-dir "crumbs/")
+(defcustom gnus-notes-breadcrumbs-dir  (locate-user-emacs-file (concat gnus-notes-top-dir
+                                                                       "crumbs"))
   "A directory for keeping article breadcrumbs in between saves.
 Used only when `gnus-notes-file' is non-nil."
   :group 'gnus-notes

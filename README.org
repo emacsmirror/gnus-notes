@@ -83,6 +83,37 @@
   Advanced users can look at the definition of the above function, to fine-tune
   their needs.
 
+** The use-package method
+
+   For those who prefer using ~use-package~, user [[https://github.com/Thaodan][Thaodan]] recommends and uses
+   following configuration setup:
+
+   #+begin_src emacs-lisp
+     (use-package gnus-notes-org
+                  :after org
+                  :bind (
+                         ;; define keybindings here instead of using gnus-notes-org-define-key
+                         ;; to profit from use-packages lazy loading
+                         :map org-mode-map
+                         ("C-C t" . gnus-notes-org-handle-email)
+                         :map org-agenda-keymap
+                         ("C-c t" . gnus-notes-org-handle-email)
+                         :map gnus-summary-mode-map
+                         ("C-c t" . gnus-notes-org-handle-email)
+                         :map gnus-article-mode-map
+                         ("C-c t" . gnus-notes-org-handle-email)))
+
+     (use-package gnus-notes
+                  :after gnus
+                  :after gnus-notes-org
+                  :config
+                  (gnus-notes-init))
+
+     (use-package gnus-notes-helm
+                  :after gnus-notes
+                  :bind (("C-c g m" . gnus-notes-helm)))
+   #+end_src
+
 * Usage
 
   After loading the =gnus-notes= library, start your =gnus= and read a few
@@ -133,7 +164,7 @@
    Helm has many features. It is worth checking the helm manual (=C-h m=). It is
    beyond this README to provide detailed info on Helm.
 
-** Edititng notes
+** Editing notes
 
    This is a new functionality in =gnus-notes=. Now the user can edit the display
    string or the article group. This is handy when the user doesn't like something

@@ -53,7 +53,7 @@
 (declare-function gnus-notes-helm-candidates "gnus-notes-helm" (articles-list))
 
 (defgroup gnus-notes-org nil
-  "Org integration for gnus-notes"
+  "Org integration for gnus-notes."
   :tag "Gnus Notes Org"
   :group 'gnus-notes)
 
@@ -289,7 +289,7 @@ select the action on the email articles."
     (gnus-notes-org-clear-heading-alist)))
 
 (defhydra hydra-gnus-notes-org-handle-mail (:color blue :columns 2)
-  "Reply to email from current heading"
+  "Reply to email from current heading."
   ("h" gnus-notes-org-handle-mail-crumbs "View in helm")
   ("t" gnus-notes-org-handle-mail-top "Reply to top")
   ("v" gnus-notes-org-handle-mail-view "Search Gnus (imap)")
@@ -360,7 +360,7 @@ value from `gnus-notes-org-get-heading-alist'."
                   (alist-get 'uid gnus-notes-org--current-heading-alist))))
 
 (defhydra hydra-gnus-org-helm (:columns 4 :exit nil)
-  "Persistent actions"
+  "Persistent actions."
   ("c" (gnus-notes-kill-new-org-link gnus-notes-helm-current-data-pa) "Copy Org link")
   ("b" (gnus-notes-bbdb-display-all  gnus-notes-helm-current-data-pa) "BBDB entries")
   ("{" helm-enlarge-window "enlarge")

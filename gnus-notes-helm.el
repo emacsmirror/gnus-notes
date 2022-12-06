@@ -212,7 +212,7 @@ Argument ARTDATA is the article data."
   (helm-refresh))
 
 (defhydra hydra-gnus-notes-helm (:columns 3 :exit nil)
-  "Persistent actions"
+  "Persistent actions."
   ("c" (gnus-notes-kill-new-org-link gnus-notes-helm-current-data-pa) "Copy Org link")
   ("b" (gnus-notes-bbdb-display-all gnus-notes-helm-current-data-pa) "BBDB entries")
   ("K" (gnus-notes-helm-forget-pa gnus-notes-helm-current-data-pa) "Forget current")

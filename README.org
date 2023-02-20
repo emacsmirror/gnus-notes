@@ -95,13 +95,13 @@
                          ;; define keybindings here instead of using gnus-notes-org-define-key
                          ;; to profit from use-packages lazy loading
                          :map org-mode-map
-                         ("C-C t" . gnus-notes-org-handle-email)
+                         ("C-C t" . gnus-notes-org-handle-mail)
                          :map org-agenda-keymap
-                         ("C-c t" . gnus-notes-org-handle-email)
+                         ("C-c t" . gnus-notes-org-handle-mail)
                          :map gnus-summary-mode-map
-                         ("C-c t" . gnus-notes-org-handle-email)
+                         ("C-c t" . gnus-notes-org-handle-mail)
                          :map gnus-article-mode-map
-                         ("C-c t" . gnus-notes-org-handle-email)))
+                         ("C-c t" . gnus-notes-org-handle-mail)))
 
      (use-package gnus-notes
                   :after gnus
